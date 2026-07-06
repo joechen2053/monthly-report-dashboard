@@ -559,11 +559,23 @@
     }
 
     function dataTableToObjects(dataTable) {
-      const headers = Array.from({ length: dataTable.getNumberOfColumns() }, (_, colIndex) => {
-        return dataTable.getColumnLabel(colIndex) || dataTable.getColumnId(colIndex) || `COL_${colIndex + 1}`;
+      const initialHeaders = Array.from({ length: dataTable.getNumberOfColumns() }, (_, colIndex) => {
+        return normalizeText(dataTable.getColumnLabel(colIndex)) || normalizeText(dataTable.getColumnId(colIndex)) || `COL_${colIndex + 1}`;
       });
+      const shouldUseFirstRowAsHeader = initialHeaders.every((header, colIndex) => {
+        const generic = header === String.fromCharCode(65 + colIndex) || header === `COL_${colIndex + 1}`;
+        return generic;
+      }) && dataTable.getNumberOfRows() > 0;
 
-      return Array.from({ length: dataTable.getNumberOfRows() }, (_, rowIndex) => {
+      const headers = shouldUseFirstRowAsHeader
+        ? Array.from({ length: dataTable.getNumberOfColumns() }, (_, colIndex) => {
+            return normalizeText(dataTable.getFormattedValue(0, colIndex)) || `COL_${colIndex + 1}`;
+          })
+        : initialHeaders;
+      const startRowIndex = shouldUseFirstRowAsHeader ? 1 : 0;
+
+      return Array.from({ length: Math.max(0, dataTable.getNumberOfRows() - startRowIndex) }, (_, offset) => {
+        const rowIndex = offset + startRowIndex;
         const row = {};
         headers.forEach((header, colIndex) => {
           const formatted = dataTable.getFormattedValue(rowIndex, colIndex);
@@ -1184,6 +1196,10 @@
       return periods.flatMap((period) => filterSalesRowsByPeriod(period, context.channel));
     }
 
+    function getUnresolvedOwnerCount(rows) {
+      return rows.filter((row) => !getResolvedOwner(row)).length;
+    }
+
     function computeYtdRows(months, context) {
       return months.flatMap((month) => filterSalesRowsByPeriod(month, context.channel));
     }
@@ -1192,6 +1208,12 @@
       const warnings = [];
       if (["展業效率", "增員育留", "組織結構"].includes(context.metricCategory) && context.channel !== "營業處") {
         warnings.push("目前選到的人員/組織型指標，會使用業務組織檔計算。若通路不是「營業處」，部分指標可能只對營業處體系有完整覆蓋。");
+      }
+      if (["展業效率", "組織結構"].includes(context.metricCategory) && context.channel === "營業處") {
+        const unresolvedOwnerCount = getUnresolvedOwnerCount(computeRowsForPeriods(context.currentPeriods, context));
+        if (unresolvedOwnerCount > 0) {
+          warnings.push(`目前條件下仍有 ${unresolvedOwnerCount} 筆業績找不到當月組織歸屬，涉及實動人數、產值、職級業績等組織型指標時，結果可能略有低估。`);
+        }
       }
       if (context.metricCategory === "組織結構" && context.titles.length === 0) {
         warnings.push("組織結構類至少要保留一個職級。");
