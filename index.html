@@ -10,18 +10,18 @@
   <script src="https://www.gstatic.com/charts/loader.js"></script>
   <style>
     :root {
-      --bg: #f4efe6;
-      --paper: #fffdf8;
-      --ink: #1f2430;
-      --muted: #6a7384;
-      --line: #ddd2bf;
-      --accent: #9f4f2f;
-      --accent-dark: #6f2f17;
-      --accent-soft: #f6dfd3;
-      --teal: #0d6c74;
-      --gold: #b5852f;
-      --shadow: 0 24px 48px rgba(63, 42, 22, 0.08);
-      --radius: 22px;
+      --bg: #f3f6fb;
+      --paper: #ffffff;
+      --ink: #172033;
+      --muted: #60708a;
+      --line: #d5dde9;
+      --accent: #1e4f91;
+      --accent-dark: #143762;
+      --accent-soft: #eef4fb;
+      --teal: #1e4f91;
+      --gold: #b8812c;
+      --shadow: 0 12px 32px rgba(23, 32, 51, 0.08);
+      --radius: 18px;
     }
 
     * { box-sizing: border-box; }
@@ -31,52 +31,33 @@
       font-family: "Noto Sans TC", sans-serif;
       font-size: 13px;
       color: var(--ink);
-      background:
-        radial-gradient(circle at top left, rgba(159, 79, 47, 0.12), transparent 30%),
-        radial-gradient(circle at top right, rgba(13, 108, 116, 0.08), transparent 24%),
-        linear-gradient(180deg, #efe6d7 0%, var(--bg) 100%);
+      background: linear-gradient(180deg, #f8fbff 0%, var(--bg) 100%);
     }
 
     .shell {
-      max-width: 1400px;
+      max-width: 1520px;
       margin: 0 auto;
-      padding: 20px 16px 40px;
+      padding: 22px 20px 40px;
     }
 
     .hero {
-      background:
-        linear-gradient(135deg, rgba(159, 79, 47, 0.14), rgba(159, 79, 47, 0.03)),
-        linear-gradient(180deg, #fffdf9, #fbf4e8);
-      border: 1px solid rgba(221, 210, 191, 0.9);
-      border-radius: 30px;
-      box-shadow: var(--shadow);
-      padding: 20px 24px;
-      margin-bottom: 14px;
-      overflow: hidden;
-      position: relative;
-    }
-
-    .hero::after {
-      content: "";
-      position: absolute;
-      right: -80px;
-      top: -60px;
-      width: 260px;
-      height: 260px;
-      background: radial-gradient(circle, rgba(181, 133, 47, 0.15), transparent 65%);
-      pointer-events: none;
+      padding: 0 0 12px;
+      margin-bottom: 8px;
     }
 
     h1 {
       margin: 0;
-      font-family: "Noto Serif TC", serif;
-      font-size: clamp(18px, 3vw, 28px);
+      font-family: "Noto Sans TC", sans-serif;
+      font-size: clamp(15px, 2vw, 22px);
       line-height: 1.1;
+      font-weight: 800;
+      letter-spacing: 0.01em;
+      color: #20304d;
     }
 
     .report {
       background: var(--paper);
-      border: 1px solid rgba(221, 210, 191, 0.88);
+      border: 1px solid #dde5ef;
       border-radius: var(--radius);
       box-shadow: var(--shadow);
     }
@@ -96,9 +77,9 @@
 
     .card {
       border: 1px solid var(--line);
-      border-radius: 18px;
-      padding: 14px;
-      background: #fffdf9;
+      border-radius: 14px;
+      padding: 12px 14px;
+      background: #fdfefe;
     }
 
     .card strong {
@@ -115,58 +96,24 @@
     }
 
     label.file {
-      display: block;
-      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 15px;
       font-weight: 700;
       color: var(--ink);
+      white-space: nowrap;
     }
 
     select {
-      width: 100%;
-      margin-top: 8px;
+      width: 168px;
       border: 1px solid var(--line);
-      border-radius: 12px;
+      border-radius: 10px;
       background: #fff;
-      padding: 9px 11px;
-      font: inherit;
+      padding: 8px 36px 8px 10px;
       font-size: 15px;
+      line-height: 1.3;
       color: var(--ink);
-    }
-
-    .grid-2 {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-    }
-
-    .grid-1 {
-      display: grid;
-      gap: 12px;
-    }
-
-    .pill-wrap {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-top: 10px;
-    }
-
-    .pill {
-      padding: 8px 12px;
-      border-radius: 999px;
-      border: 1px solid var(--line);
-      background: #fbf7ef;
-      cursor: pointer;
-      user-select: none;
-      font-size: 13px;
-      font-weight: 700;
-      color: var(--muted);
-    }
-
-    .pill.active {
-      background: var(--teal);
-      color: #fff;
-      border-color: var(--teal);
     }
 
     .status {
@@ -177,18 +124,18 @@
     }
 
     .report {
-      padding: 16px;
+      padding: 18px 18px 16px;
     }
 
     .toolbar {
       display: grid;
-      gap: 12px;
-      margin-bottom: 12px;
+      gap: 10px;
+      margin-bottom: 14px;
     }
 
     .toolbar-top {
       display: flex;
-      justify-content: space-between;
+      justify-content: flex-end;
       align-items: center;
       gap: 12px;
       flex-wrap: wrap;
@@ -201,18 +148,82 @@
     }
 
     .filter-grid {
-      display: grid;
-      grid-template-columns: repeat(5, minmax(0, 1fr));
-      gap: 12px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px 18px;
+      align-items: center;
+    }
+
+    .filter-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
     }
 
     .title-filter {
       display: none;
-      padding: 12px 14px;
+      position: relative;
     }
 
     .title-filter.show {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .multi-select {
+      position: relative;
+    }
+
+    .multi-select-button {
+      min-width: 190px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #fff;
+      color: var(--ink);
+      padding: 8px 12px;
+      font: inherit;
+      font-size: 15px;
+      text-align: left;
+      box-shadow: none;
+      cursor: pointer;
+    }
+
+    .multi-select-menu {
+      display: none;
+      position: absolute;
+      top: calc(100% + 6px);
+      left: 0;
+      min-width: 220px;
+      padding: 8px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #fff;
+      box-shadow: 0 14px 28px rgba(23, 32, 51, 0.14);
+      z-index: 20;
+    }
+
+    .multi-select.open .multi-select-menu {
       display: block;
+    }
+
+    .multi-select-option {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 10px;
+      border-radius: 8px;
+      font-size: 14px;
+      color: var(--ink);
+      cursor: pointer;
+    }
+
+    .multi-select-option:hover {
+      background: #f3f7fc;
+    }
+
+    .multi-select-option input {
+      margin: 0;
     }
 
     .warning {
@@ -233,7 +244,7 @@
 
     .table-wrap {
       overflow: auto;
-      border-radius: 18px;
+      border-radius: 14px;
       border: 1px solid var(--line);
       background: #fff;
     }
@@ -247,14 +258,15 @@
     thead th {
       position: sticky;
       top: 0;
-      z-index: 1;
-      background: #fbf5ea;
+      z-index: 2;
+      background: #eef4fb;
       color: var(--accent-dark);
-      font-size: 14px;
+      font-size: 16px;
       letter-spacing: 0.04em;
       text-align: right;
-      padding: 12px 10px;
+      padding: 14px 10px;
       border-bottom: 1px solid var(--line);
+      box-shadow: 0 1px 0 rgba(23, 32, 51, 0.06);
     }
 
     thead th:first-child {
@@ -262,15 +274,15 @@
     }
 
     tbody td {
-      padding: 11px 10px;
+      padding: 12px 10px;
       border-bottom: 1px solid #eee6d9;
-      font-size: 14px;
+      font-size: 16px;
       vertical-align: top;
       text-align: right;
     }
 
     tbody tr:nth-child(even) {
-      background: #fffdf9;
+      background: #f9fbfe;
     }
 
     tbody td.metric-name {
@@ -280,8 +292,6 @@
     }
 
     .metric-tip {
-      text-decoration: underline dotted rgba(31, 36, 48, 0.35);
-      text-underline-offset: 3px;
       cursor: help;
     }
 
@@ -300,18 +310,28 @@
     .footnote {
       margin-top: 14px;
       color: var(--muted);
-      font-size: 12px;
+      font-size: 13px;
       line-height: 1.8;
     }
 
     @media (max-width: 1100px) {
-      .filter-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .filter-grid { gap: 10px 14px; }
     }
 
     @media (max-width: 640px) {
       .shell { padding: 14px 10px 30px; }
-      .hero, .report { border-radius: 20px; }
-      .filter-grid, .grid-2 { grid-template-columns: 1fr; }
+      .report { border-radius: 20px; }
+      .filter-grid, .filter-item, .title-filter.show {
+        display: grid;
+        justify-items: stretch;
+      }
+      label.file {
+        justify-content: space-between;
+      }
+      select, .multi-select-button {
+        width: 100%;
+        min-width: 0;
+      }
       .toolbar-top { align-items: flex-start; }
     }
   </style>
@@ -325,34 +345,36 @@
     <main class="report">
       <div class="toolbar">
         <div class="toolbar-top">
-          <div class="unit-label">業績單位：萬元</div>
           <div class="status" id="statusText" hidden>尚未載入資料。</div>
         </div>
         <div class="filter-grid">
-          <label class="file">
-            年度
+          <div class="filter-item">
+            <label class="file" for="yearSelect">年度</label>
             <select id="yearSelect" disabled></select>
-          </label>
-          <label class="file">
-            月份
+          </div>
+          <div class="filter-item">
+            <label class="file" for="monthSelect">月份</label>
             <select id="monthSelect" disabled></select>
-          </label>
-          <label class="file">
-            通路
+          </div>
+          <div class="filter-item">
+            <label class="file" for="channelSelect">通路</label>
             <select id="channelSelect" disabled></select>
-          </label>
-          <label class="file">
-            產品類別
+          </div>
+          <div class="filter-item">
+            <label class="file" for="productSelect">產品類別</label>
             <select id="productSelect" disabled></select>
-          </label>
-          <label class="file">
-            指標類別
+          </div>
+          <div class="filter-item">
+            <label class="file" for="metricCategorySelect">指標類別</label>
             <select id="metricCategorySelect" disabled></select>
-          </label>
-        </div>
-        <div class="card title-filter" id="titleFilterCard">
-          <strong>職級（可複選）</strong>
-          <div class="pill-wrap" id="titlePills"></div>
+          </div>
+          <div class="title-filter" id="titleFilterCard">
+            <label class="file" for="titleFilterButton">職級</label>
+            <div class="multi-select" id="titleMultiSelect">
+              <button type="button" class="multi-select-button" id="titleFilterButton">全部職級</button>
+              <div class="multi-select-menu" id="titlePills"></div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -380,6 +402,7 @@
         <div class="warning" id="warningBox"></div>
 
         <div class="footnote" id="footnote">
+          <div class="unit-label">業績單位：萬元</div>
           指標命名與規則依目前文件版本實作。展業效率、增員育留、組織結構等人員相關指標會用 <code>業務組織</code> 試算表與 <code>g_position</code> 組織關係計算。
         </div>
     </main>
@@ -612,21 +635,26 @@
       return [...new Set(state.salesRows.map((row) => normalizeText(row["年"])).filter(Boolean))].sort();
     }
 
-    function getAvailableMonthsForYear(year) {
-      if (year === "全部") {
-        return Array.from({ length: 12 }, (_, idx) => String(idx + 1).padStart(2, "0"));
-      }
-      return [...new Set(
+    function getLatestMonthForYear(year) {
+      const months = [...new Set(
         state.salesRows
           .filter((row) => normalizeText(row["年"]) === year)
           .map((row) => String(parseNumber(row["月"])).padStart(2, "0"))
           .filter((month) => month !== "00")
       )].sort();
+      return months.at(-1) || "12";
+    }
+
+    function getAvailableMonthsForYear(year) {
+      return Array.from({ length: 12 }, (_, idx) => String(idx + 1).padStart(2, "0"));
     }
 
     function updateMonthOptions(selectedYear, preferredMonth = null) {
       const months = ["全部", ...getAvailableMonthsForYear(selectedYear)];
-      fillSelect($("monthSelect"), months, preferredMonth || months.at(-1));
+      const fallbackMonth = selectedYear === "全部"
+        ? getLatestMonthForYear(getAvailableYears().at(-1))
+        : getLatestMonthForYear(selectedYear);
+      fillSelect($("monthSelect"), months, preferredMonth || fallbackMonth);
     }
 
     function buildFilterOptions() {
@@ -645,7 +673,7 @@
       ["yearSelect", "monthSelect", "channelSelect", "productSelect", "metricCategorySelect"].forEach((id) => {
         $(id).disabled = false;
       });
-      renderTitlePills();
+      renderTitleDropdown();
       toggleTitleCard();
     }
 
@@ -656,21 +684,35 @@
       }
     }
 
-    function renderTitlePills() {
+    function getTitleSummary() {
+      if (state.selectedTitles.size === titleOptions.length) return "全部職級";
+      return [...state.selectedTitles].join("、");
+    }
+
+    function renderTitleDropdown() {
+      $("titleFilterButton").textContent = getTitleSummary();
       $("titlePills").innerHTML = titleOptions.map((title) => {
-        const active = state.selectedTitles.has(title) ? "active" : "";
-        return `<button type="button" class="pill ${active}" data-title="${title}">${title}</button>`;
+        const checked = state.selectedTitles.has(title) ? "checked" : "";
+        return `
+          <label class="multi-select-option">
+            <input type="checkbox" data-title="${title}" ${checked}>
+            <span>${title}</span>
+          </label>
+        `;
       }).join("");
-      $("titlePills").querySelectorAll(".pill").forEach((pill) => {
-        pill.addEventListener("click", () => {
-          const title = pill.dataset.title;
-          if (state.selectedTitles.has(title)) {
-            if (state.selectedTitles.size === 1) return;
-            state.selectedTitles.delete(title);
-          } else {
+      $("titlePills").querySelectorAll("input[type='checkbox']").forEach((checkbox) => {
+        checkbox.addEventListener("change", () => {
+          const title = checkbox.dataset.title;
+          if (checkbox.checked) {
             state.selectedTitles.add(title);
+          } else {
+            if (state.selectedTitles.size === 1) {
+              checkbox.checked = true;
+              return;
+            }
+            state.selectedTitles.delete(title);
           }
-          renderTitlePills();
+          $("titleFilterButton").textContent = getTitleSummary();
           renderReport();
         });
       });
@@ -678,6 +720,9 @@
 
     function toggleTitleCard() {
       $("titleFilterCard").classList.toggle("show", $("metricCategorySelect").value === "組織結構");
+      if ($("metricCategorySelect").value !== "組織結構") {
+        $("titleMultiSelect").classList.remove("open");
+      }
     }
 
     function getSelectedContext() {
@@ -686,7 +731,7 @@
       const availableYears = getAvailableYears();
       const year = selectedYear === "全部" ? availableYears.at(-1) : selectedYear;
       const prevYear = String(Number(year) - 1).padStart(3, "0");
-      const month = selectedMonth === "全部" ? "12" : selectedMonth;
+      const month = selectedMonth === "全部" ? getLatestMonthForYear(year) : selectedMonth;
       const currentPeriods = selectedMonth === "全部"
         ? getAvailableMonthsForYear(year).map((item) => formatMinguoMonth(year, Number(item)))
         : [formatMinguoMonth(year, Number(selectedMonth))];
@@ -1275,7 +1320,7 @@
         ? `${context.year} 年全年`
         : getPeriodLabel(context.yyyymm);
       const yearNote = context.selectedYear === "全部" ? "　|　年度選單為「全部」時，報表以資料中最新年度作為比較基準。" : "";
-      $("footnote").innerHTML = `分析期間：<code>${periodText}</code>　|　目前條件：<code>${context.metricCategory}</code> / <code>${context.channel}</code> / <code>${context.product === "全部" ? "全商品" : context.product}</code>${yearNote}`;
+      $("footnote").innerHTML = `<div class="unit-label">業績單位：萬元</div>分析期間：<code>${periodText}</code>　|　目前條件：<code>${context.metricCategory}</code> / <code>${context.channel}</code> / <code>${context.product === "全部" ? "全商品" : context.product}</code>${yearNote}`;
     }
 
     async function useSheetRows(salesRows, orgRows) {
@@ -1310,6 +1355,18 @@
     $("yearSelect").addEventListener("change", () => {
       updateMonthOptions($("yearSelect").value);
       renderReport();
+    });
+    $("titleFilterButton").addEventListener("click", (event) => {
+      event.stopPropagation();
+      $("titleMultiSelect").classList.toggle("open");
+    });
+    $("titlePills").addEventListener("click", (event) => {
+      event.stopPropagation();
+    });
+    document.addEventListener("click", (event) => {
+      if (!$("titleMultiSelect").contains(event.target)) {
+        $("titleMultiSelect").classList.remove("open");
+      }
     });
     ["monthSelect", "channelSelect", "productSelect", "metricCategorySelect"].forEach((id) => {
       $(id).addEventListener("change", renderReport);
