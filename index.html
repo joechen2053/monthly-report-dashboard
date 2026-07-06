@@ -10,18 +10,19 @@
   <script src="https://www.gstatic.com/charts/loader.js"></script>
   <style>
     :root {
-      --bg: #f3f6fb;
-      --paper: #ffffff;
-      --ink: #172033;
-      --muted: #60708a;
-      --line: #d5dde9;
-      --accent: #1e4f91;
-      --accent-dark: #143762;
-      --accent-soft: #eef4fb;
-      --teal: #1e4f91;
+      --bg: #f5f1ea;
+      --paper: #fffdf9;
+      --ink: #2a2a2a;
+      --muted: #766c61;
+      --line: #d9d0c3;
+      --accent: #9a1d2e;
+      --accent-dark: #7d1625;
+      --accent-soft: #f8ecef;
+      --teal: #9a1d2e;
       --gold: #b8812c;
-      --shadow: 0 12px 32px rgba(23, 32, 51, 0.08);
+      --shadow: 0 12px 30px rgba(76, 45, 33, 0.08);
       --radius: 18px;
+      --hover-row: #f7efe1;
     }
 
     * { box-sizing: border-box; }
@@ -31,7 +32,7 @@
       font-family: "Noto Sans TC", sans-serif;
       font-size: 13px;
       color: var(--ink);
-      background: linear-gradient(180deg, #f8fbff 0%, var(--bg) 100%);
+      background: linear-gradient(180deg, #fbf8f2 0%, var(--bg) 100%);
     }
 
     .shell {
@@ -52,12 +53,12 @@
       line-height: 1.1;
       font-weight: 800;
       letter-spacing: 0.01em;
-      color: #20304d;
+      color: #342821;
     }
 
     .report {
       background: var(--paper);
-      border: 1px solid #dde5ef;
+      border: 1px solid #e3d9cc;
       border-radius: var(--radius);
       box-shadow: var(--shadow);
     }
@@ -79,7 +80,7 @@
       border: 1px solid var(--line);
       border-radius: 14px;
       padding: 12px 14px;
-      background: #fdfefe;
+      background: #fffdfa;
     }
 
     .card strong {
@@ -106,7 +107,7 @@
     }
 
     select {
-      width: 168px;
+      width: 154px;
       border: 1px solid var(--line);
       border-radius: 10px;
       background: #fff;
@@ -149,20 +150,24 @@
 
     .filter-grid {
       display: flex;
-      flex-wrap: wrap;
+      flex-wrap: nowrap;
       gap: 12px 18px;
       align-items: center;
+      overflow-x: auto;
+      padding-bottom: 2px;
     }
 
     .filter-item {
       display: flex;
       align-items: center;
       gap: 10px;
+      flex: 0 0 auto;
     }
 
     .title-filter {
       display: none;
       position: relative;
+      flex: 0 0 auto;
     }
 
     .title-filter.show {
@@ -176,7 +181,7 @@
     }
 
     .multi-select-button {
-      min-width: 190px;
+      min-width: 172px;
       border: 1px solid var(--line);
       border-radius: 10px;
       background: #fff;
@@ -259,14 +264,14 @@
       position: sticky;
       top: 0;
       z-index: 2;
-      background: #eef4fb;
-      color: var(--accent-dark);
+      background: var(--accent);
+      color: #fffdf8;
       font-size: 16px;
       letter-spacing: 0.04em;
       text-align: right;
       padding: 14px 10px;
-      border-bottom: 1px solid var(--line);
-      box-shadow: 0 1px 0 rgba(23, 32, 51, 0.06);
+      border-bottom: 1px solid #8a1a29;
+      box-shadow: 0 1px 0 rgba(76, 45, 33, 0.08);
     }
 
     thead th:first-child {
@@ -275,14 +280,23 @@
 
     tbody td {
       padding: 12px 10px;
-      border-bottom: 1px solid #eee6d9;
+      border-bottom: 1px solid #e3d9cc;
       font-size: 16px;
       vertical-align: top;
       text-align: right;
+      background: #fffdf9;
     }
 
     tbody tr:nth-child(even) {
-      background: #f9fbfe;
+      background: #fcf8f1;
+    }
+
+    tbody tr:nth-child(even) td {
+      background: #fcf8f1;
+    }
+
+    tbody tr:hover td {
+      background: var(--hover-row);
     }
 
     tbody td.metric-name {
@@ -324,6 +338,10 @@
       .filter-grid, .filter-item, .title-filter.show {
         display: grid;
         justify-items: stretch;
+      }
+      .filter-grid {
+        flex-wrap: wrap;
+        overflow-x: visible;
       }
       label.file {
         justify-content: space-between;
