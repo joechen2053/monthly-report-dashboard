@@ -398,6 +398,7 @@
     const titleOptions = ["處長", "副處長", "協理", "經理", "主任"];
     const metricCategories = ["產品銷售", "展業效率", "付款方式", "增員育留", "組織結構"];
     const productOptions = ["全部", "契約", "塔位", "墓園"];
+    const channelOptions = ["全部", "營業處", "喪葬通路-宇錡", "喪葬通路-龍巖", "多元行銷", "電銷", "內勤"];
     const googleChartsReady = new Promise((resolve) => {
       google.charts.load("current", { packages: ["table"] });
       google.charts.setOnLoadCallback(resolve);
@@ -595,7 +596,14 @@
       return String(new Date().getFullYear() - 1911);
     }
 
+    function getAvailableYears() {
+      return [...new Set(state.salesRows.map((row) => normalizeText(row["年"])).filter(Boolean))].sort();
+    }
+
     function getAvailableMonthsForYear(year) {
+      if (year === "全部") {
+        return Array.from({ length: 12 }, (_, idx) => String(idx + 1).padStart(2, "0"));
+      }
       return [...new Set(
         state.salesRows
           .filter((row) => normalizeText(row["年"]) === year)
@@ -605,17 +613,18 @@
     }
 
     function updateMonthOptions(selectedYear, preferredMonth = null) {
-      const months = getAvailableMonthsForYear(selectedYear);
+      const months = ["全部", ...getAvailableMonthsForYear(selectedYear)];
       fillSelect($("monthSelect"), months, preferredMonth || months.at(-1));
     }
 
     function buildFilterOptions() {
-      const years = [...new Set(state.salesRows.map((row) => normalizeText(row["年"])).filter(Boolean))].sort();
-      const channels = ["全部", ...new Set(state.salesRows.map((row) => normalizeText(row["通路類別"])).filter(Boolean))];
+      const years = getAvailableYears();
+      const availableChannels = new Set(state.salesRows.map((row) => normalizeText(row["通路類別"])).filter(Boolean));
+      const channels = channelOptions.filter((channel) => channel === "全部" || availableChannels.has(channel));
       const defaultYear = years.includes(getCurrentMinguoYear()) ? getCurrentMinguoYear() : years.at(-1);
       const defaultChannel = channels.includes("營業處") ? "營業處" : channels[0];
 
-      fillSelect($("yearSelect"), years, defaultYear);
+      fillSelect($("yearSelect"), ["全部", ...years], defaultYear);
       updateMonthOptions(defaultYear);
       fillSelect($("channelSelect"), channels, defaultChannel);
       fillSelect($("productSelect"), productOptions, "全部");
@@ -660,16 +669,30 @@
     }
 
     function getSelectedContext() {
-      const year = $("yearSelect").value;
-      const month = $("monthSelect").value;
-      const yyyymm = `${year}${month}`;
+      const selectedYear = $("yearSelect").value;
+      const selectedMonth = $("monthSelect").value;
+      const availableYears = getAvailableYears();
+      const year = selectedYear === "全部" ? availableYears.at(-1) : selectedYear;
+      const prevYear = String(Number(year) - 1).padStart(3, "0");
+      const month = selectedMonth === "全部" ? "12" : selectedMonth;
+      const currentPeriods = selectedMonth === "全部"
+        ? getAvailableMonthsForYear(year).map((item) => formatMinguoMonth(year, Number(item)))
+        : [formatMinguoMonth(year, Number(selectedMonth))];
+      const prevPeriods = selectedMonth === "全部"
+        ? getAvailableMonthsForYear(prevYear).map((item) => formatMinguoMonth(prevYear, Number(item)))
+        : [formatMinguoMonth(prevYear, Number(selectedMonth))];
+      const yyyymm = currentPeriods.at(-1) || `${year}${month}`;
       return {
+        selectedYear,
+        selectedMonth,
         year,
         month,
         yyyymm,
-        prevYyyymm: getPrevYearMonth(yyyymm),
-        ytdMonths: getYtdMonths(yyyymm),
-        prevYtdMonths: getYtdMonths(getPrevYearMonth(yyyymm)),
+        prevYyyymm: prevPeriods.at(-1) || getPrevYearMonth(yyyymm),
+        currentPeriods,
+        prevPeriods,
+        ytdMonths: selectedMonth === "全部" ? currentPeriods : getYtdMonths(yyyymm),
+        prevYtdMonths: selectedMonth === "全部" ? prevPeriods : getYtdMonths(getPrevYearMonth(yyyymm)),
         channel: $("channelSelect").value,
         product: $("productSelect").value,
         metricCategory: $("metricCategorySelect").value,
@@ -1089,6 +1112,7 @@
             label: "營Top1業績",
             note: "通路 = 營業處時適用。",
             type: "currency",
+            hidden: () => context.channel !== "營業處",
             value: (rows) => getOfficeRevenueRank(rows, context.product, 1),
           },
           {
@@ -1096,6 +1120,7 @@
             label: "營Top1業績佔率",
             note: "通路 = 營業處時適用。",
             type: "percent",
+            hidden: () => context.channel !== "營業處",
             value: (rows) => safeDivide(getOfficeRevenueRank(rows, context.product, 1), getRevenue(rows, context.product)),
           },
           {
@@ -1103,6 +1128,7 @@
             label: "營Top5業績",
             note: "通路 = 營業處時適用。",
             type: "currency",
+            hidden: () => context.channel !== "營業處",
             value: (rows) => getOfficeRevenueRank(rows, context.product, 5),
           },
           {
@@ -1110,6 +1136,7 @@
             label: "營Top5業績佔率",
             note: "通路 = 營業處時適用。",
             type: "percent",
+            hidden: () => context.channel !== "營業處",
             value: (rows) => safeDivide(getOfficeRevenueRank(rows, context.product, 5), getRevenue(rows, context.product)),
           },
           {
@@ -1117,6 +1144,7 @@
             label: "營Top10業績",
             note: "通路 = 營業處時適用。",
             type: "currency",
+            hidden: () => context.channel !== "營業處",
             value: (rows) => getOfficeRevenueRank(rows, context.product, 10),
           },
           {
@@ -1124,6 +1152,7 @@
             label: "營Top10業績佔率",
             note: "通路 = 營業處時適用。",
             type: "percent",
+            hidden: () => context.channel !== "營業處",
             value: (rows) => safeDivide(getOfficeRevenueRank(rows, context.product, 10), getRevenue(rows, context.product)),
           },
         ],
@@ -1149,6 +1178,10 @@
     function computePeriodMetrics(yyyymm, context) {
       const rows = filterSalesRowsByPeriod(yyyymm, context.channel);
       return { yyyymm, rows };
+    }
+
+    function computeRowsForPeriods(periods, context) {
+      return periods.flatMap((period) => filterSalesRowsByPeriod(period, context.channel));
     }
 
     function computeYtdRows(months, context) {
@@ -1180,8 +1213,8 @@
       renderWarnings(context);
 
       const registry = buildMetricRegistry(context)[context.metricCategory];
-      const current = computePeriodMetrics(context.yyyymm, context);
-      const prev = computePeriodMetrics(context.prevYyyymm, context);
+      const current = { yyyymm: context.yyyymm, rows: computeRowsForPeriods(context.currentPeriods, context) };
+      const prev = { yyyymm: context.prevYyyymm, rows: computeRowsForPeriods(context.prevPeriods, context) };
       const currentYtdRows = computeYtdRows(context.ytdMonths, context);
       const prevYtdRows = computeYtdRows(context.prevYtdMonths, context);
 
@@ -1216,7 +1249,11 @@
         .join("");
 
       $("reportBody").innerHTML = rowsHtml || `<tr><td colspan="9" class="muted" style="padding:24px; text-align:left;">目前條件下沒有可顯示的指標。</td></tr>`;
-      $("footnote").innerHTML = `分析期間：<code>${getPeriodLabel(context.yyyymm)}</code>　|　目前條件：<code>${context.metricCategory}</code> / <code>${context.channel}</code> / <code>${context.product === "全部" ? "全商品" : context.product}</code>`;
+      const periodText = context.selectedMonth === "全部"
+        ? `${context.year} 年全年`
+        : getPeriodLabel(context.yyyymm);
+      const yearNote = context.selectedYear === "全部" ? "　|　年度選單為「全部」時，報表以資料中最新年度作為比較基準。" : "";
+      $("footnote").innerHTML = `分析期間：<code>${periodText}</code>　|　目前條件：<code>${context.metricCategory}</code> / <code>${context.channel}</code> / <code>${context.product === "全部" ? "全商品" : context.product}</code>${yearNote}`;
     }
 
     async function useSheetRows(salesRows, orgRows) {
