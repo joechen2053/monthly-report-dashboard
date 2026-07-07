@@ -871,8 +871,16 @@
       return filterSalesRowsByProduct(rows, product, false).reduce((sum, row) => sum + parseNumber(row["管報金額"]), 0);
     }
 
+    function getDealCountEligibleRows(rows, product) {
+      return filterSalesRowsByProduct(rows, product, true).filter((row) => parseNumber(row["數量"]) === 1);
+    }
+
     function getDealCount(rows, product) {
-      return filterSalesRowsByProduct(rows, product, true).length;
+      return getDealCountEligibleRows(rows, product).reduce((sum, row) => sum + parseNumber(row["數量"]), 0);
+    }
+
+    function getRevenueForDealCount(rows, product) {
+      return getDealCountEligibleRows(rows, product).reduce((sum, row) => sum + parseNumber(row["管報金額"]), 0);
     }
 
     function getCustomerCount(rows, product) {
@@ -979,6 +987,15 @@
       return numerator / denominator;
     }
 
+    function averageMonthlyValue(periods, context, valueGetter) {
+      if (!periods.length) return null;
+      const values = periods
+        .map((period) => valueGetter(filterSalesRowsByPeriod(period, context.channel), period))
+        .filter((value) => value !== null && value !== undefined && !Number.isNaN(value));
+      if (!values.length) return null;
+      return values.reduce((sum, value) => sum + value, 0) / values.length;
+    }
+
     function metricLabel(template, context) {
       return template
         .replace(/\{product\}/g, context.product === "全部" ? "全商品" : context.product)
@@ -998,7 +1015,7 @@
           {
             key: "dealCount",
             label: "{product}件數",
-            note: "只算契約 / 塔位 / 墓園；不算各種憑證與寵物塔位。",
+            note: "只算契約 / 塔位 / 墓園，且僅計入數量 = 1 的業績列。",
             type: "integer",
             value: (rows) => getDealCount(rows, context.product),
           },
@@ -1013,9 +1030,9 @@
           {
             key: "avgUnitPrice",
             label: "{product}平均單價",
-            note: "全商品平均單價 = 總業績 / 總件數。",
+            note: "平均單價 = 有計入件數的業績金額 / 件數。",
             type: "currency",
-            value: (rows) => safeDivide(getRevenue(rows, context.product), getDealCount(rows, context.product)),
+            value: (rows) => safeDivide(getRevenueForDealCount(rows, context.product), getDealCount(rows, context.product)),
           },
           {
             key: "bigOrderRevenueRatio",
@@ -1049,6 +1066,7 @@
             note: "主任級(含)以上在職人數。",
             type: "integer",
             value: (_, period) => getActiveHeadcount(period),
+            ytdValue: (_, periods) => averageMonthlyValue(periods, context, (_rows, period) => getActiveHeadcount(period)),
           },
           {
             key: "productiveHeadcount",
@@ -1077,6 +1095,7 @@
             note: "去重後客戶人數。",
             type: "integer",
             value: (rows) => getCustomerCount(rows, context.product),
+            ytdValue: (_, periods) => averageMonthlyValue(periods, context, (rows) => getCustomerCount(rows, context.product)),
           },
           {
             key: "avgRevenuePerCustomer",
@@ -1227,6 +1246,7 @@
             note: "主任級(含)以上在職人數。",
             type: "integer",
             value: (_, period) => getActiveHeadcount(period),
+            ytdValue: (_, periods) => averageMonthlyValue(periods, context, (_rows, period) => getActiveHeadcount(period)),
           },
           {
             key: "titleHeadcount",
@@ -1235,6 +1255,7 @@
             type: "integer",
             hidden: () => isAllTitlesSelected(),
             value: (_, period) => getActiveHeadcount(period, context.titles),
+            ytdValue: (_, periods) => averageMonthlyValue(periods, context, (_rows, period) => getActiveHeadcount(period, context.titles)),
           },
           {
             key: "titleHeadcountRatio",
@@ -1243,6 +1264,7 @@
             type: "percent",
             hidden: () => isAllTitlesSelected(),
             value: (_, period) => safeDivide(getActiveHeadcount(period, context.titles), getActiveHeadcount(period)),
+            ytdValue: (_, periods) => averageMonthlyValue(periods, context, (_rows, period) => safeDivide(getActiveHeadcount(period, context.titles), getActiveHeadcount(period))),
           },
           {
             key: "titleRevenue",
@@ -1386,8 +1408,12 @@
         .map((metric) => {
           const currentValue = metric.value(current.rows, context.yyyymm);
           const prevValue = metric.value(prev.rows, context.prevYyyymm);
-          const currentYtdValue = metric.value(currentYtdRows, context.yyyymm);
-          const prevYtdValue = metric.value(prevYtdRows, context.prevYyyymm);
+          const currentYtdValue = metric.ytdValue
+            ? metric.ytdValue(currentYtdRows, context.ytdMonths)
+            : metric.value(currentYtdRows, context.yyyymm);
+          const prevYtdValue = metric.ytdValue
+            ? metric.ytdValue(prevYtdRows, context.prevYtdMonths)
+            : metric.value(prevYtdRows, context.prevYyyymm);
           const label = metricLabel(metric.label, context);
 
           const monthDelta = currentValue === null || prevValue === null ? null : currentValue - prevValue;
