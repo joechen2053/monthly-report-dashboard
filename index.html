@@ -107,7 +107,7 @@
     }
 
     select {
-      width: 154px;
+      width: 140px;
       border: 1px solid var(--line);
       border-radius: 10px;
       background: #fff;
@@ -162,6 +162,14 @@
       align-items: center;
       gap: 10px;
       flex: 0 0 auto;
+    }
+
+    .filter-item.compact select {
+      width: 104px;
+    }
+
+    .filter-item.wide select {
+      width: 164px;
     }
 
     .title-filter {
@@ -248,7 +256,8 @@
     }
 
     .table-wrap {
-      overflow: auto;
+      overflow-x: auto;
+      overflow-y: visible;
       border-radius: 14px;
       border: 1px solid var(--line);
       background: #fff;
@@ -366,23 +375,23 @@
           <div class="status" id="statusText" hidden>尚未載入資料。</div>
         </div>
         <div class="filter-grid">
-          <div class="filter-item">
+          <div class="filter-item compact">
             <label class="file" for="yearSelect">年度</label>
             <select id="yearSelect" disabled></select>
           </div>
-          <div class="filter-item">
+          <div class="filter-item compact">
             <label class="file" for="monthSelect">月份</label>
             <select id="monthSelect" disabled></select>
           </div>
-          <div class="filter-item">
+          <div class="filter-item wide">
             <label class="file" for="channelSelect">通路</label>
             <select id="channelSelect" disabled></select>
           </div>
-          <div class="filter-item">
+          <div class="filter-item wide">
             <label class="file" for="productSelect">產品類別</label>
             <select id="productSelect" disabled></select>
           </div>
-          <div class="filter-item">
+          <div class="filter-item wide">
             <label class="file" for="metricCategorySelect">指標類別</label>
             <select id="metricCategorySelect" disabled></select>
           </div>
@@ -439,7 +448,15 @@
     const titleOptions = ["處長", "副處長", "協理", "經理", "主任"];
     const metricCategories = ["產品銷售", "展業效率", "付款方式", "增員育留", "組織結構"];
     const productOptions = ["全部", "契約", "塔位", "墓園"];
-    const channelOptions = ["全部", "營業處", "喪葬通路-宇錡", "喪葬通路-龍巖", "多元行銷", "電銷", "內勤"];
+    const channelOptions = [
+      { value: "全部", label: "全部" },
+      { value: "營業處", label: "營業處" },
+      { value: "喪葬通路-宇錡", label: "喪葬宇錡" },
+      { value: "喪葬通路-龍巖", label: "喪葬龍巖" },
+      { value: "多元行銷", label: "多元行銷" },
+      { value: "電銷", label: "電銷" },
+      { value: "內勤", label: "內勤" },
+    ];
     const googleChartsReady = new Promise((resolve) => {
       google.charts.load("current", { packages: ["table"] });
       google.charts.setOnLoadCallback(resolve);
@@ -451,7 +468,7 @@
       orgMonthIndex: new Map(),
       orgResolutionCache: new Map(),
       loaded: false,
-      selectedTitles: new Set(titleOptions),
+      selectedTitles: new Set(["經理", "主任"]),
     };
 
     const $ = (id) => document.getElementById(id);
@@ -653,6 +670,10 @@
       return [...new Set(state.salesRows.map((row) => normalizeText(row["年"])).filter(Boolean))].sort();
     }
 
+    function getLatestOrgPeriod() {
+      return [...new Set(state.orgRows.map((row) => normalizeText(row["年月"])).filter(Boolean))].sort().at(-1) || "";
+    }
+
     function getLatestMonthForYear(year) {
       const months = [...new Set(
         state.salesRows
@@ -663,6 +684,16 @@
       return months.at(-1) || "12";
     }
 
+    function getLatestOrgMonthForYear(year) {
+      const months = [...new Set(
+        state.orgRows
+          .filter((row) => normalizeText(row["年月"]).startsWith(year))
+          .map((row) => normalizeText(row["年月"]).slice(3, 5))
+          .filter(Boolean)
+      )].sort();
+      return months.at(-1) || getLatestMonthForYear(year);
+    }
+
     function getAvailableMonthsForYear(year) {
       return Array.from({ length: 12 }, (_, idx) => String(idx + 1).padStart(2, "0"));
     }
@@ -670,20 +701,22 @@
     function updateMonthOptions(selectedYear, preferredMonth = null) {
       const months = ["全部", ...getAvailableMonthsForYear(selectedYear)];
       const fallbackMonth = selectedYear === "全部"
-        ? getLatestMonthForYear(getAvailableYears().at(-1))
-        : getLatestMonthForYear(selectedYear);
+        ? getLatestOrgMonthForYear(getAvailableYears().at(-1))
+        : getLatestOrgMonthForYear(selectedYear);
       fillSelect($("monthSelect"), months, preferredMonth || fallbackMonth);
     }
 
     function buildFilterOptions() {
       const years = getAvailableYears();
       const availableChannels = new Set(state.salesRows.map((row) => normalizeText(row["通路類別"])).filter(Boolean));
-      const channels = channelOptions.filter((channel) => channel === "全部" || availableChannels.has(channel));
+      const channels = channelOptions.filter((channel) => channel.value === "全部" || availableChannels.has(channel.value));
       const defaultYear = years.includes(getCurrentMinguoYear()) ? getCurrentMinguoYear() : years.at(-1);
-      const defaultChannel = channels.includes("營業處") ? "營業處" : channels[0];
+      const latestOrgPeriod = getLatestOrgPeriod();
+      const defaultMonth = latestOrgPeriod ? latestOrgPeriod.slice(3, 5) : getLatestOrgMonthForYear(defaultYear);
+      const defaultChannel = channels.some((channel) => channel.value === "營業處") ? "營業處" : channels[0]?.value;
 
       fillSelect($("yearSelect"), ["全部", ...years], defaultYear);
-      updateMonthOptions(defaultYear);
+      updateMonthOptions(defaultYear, defaultMonth);
       fillSelect($("channelSelect"), channels, defaultChannel);
       fillSelect($("productSelect"), productOptions, "全部");
       fillSelect($("metricCategorySelect"), metricCategories, "產品銷售");
@@ -696,14 +729,24 @@
     }
 
     function fillSelect(el, values, selectedValue) {
-      el.innerHTML = values.map((value) => `<option value="${value}">${value}</option>`).join("");
-      if (selectedValue && values.includes(selectedValue)) {
+      el.innerHTML = values.map((value) => {
+        if (typeof value === "object") {
+          return `<option value="${value.value}">${value.label}</option>`;
+        }
+        return `<option value="${value}">${value}</option>`;
+      }).join("");
+      const normalizedValues = values.map((value) => typeof value === "object" ? value.value : value);
+      if (selectedValue && normalizedValues.includes(selectedValue)) {
         el.value = selectedValue;
       }
     }
 
+    function isAllTitlesSelected() {
+      return state.selectedTitles.size === titleOptions.length;
+    }
+
     function getTitleSummary() {
-      if (state.selectedTitles.size === titleOptions.length) return "全部職級";
+      if (isAllTitlesSelected()) return "全部職級";
       return [...state.selectedTitles].join("、");
     }
 
@@ -1145,6 +1188,7 @@
             label: "{product}業績",
             note: "依產品類別統計有效業績總額。",
             type: "currency",
+            hidden: () => isAllTitlesSelected() && context.product !== "全部",
             value: (rows) => getRevenue(rows, context.product),
           },
           {
@@ -1159,6 +1203,7 @@
             label: "{titles}人數",
             note: "依目前職級複選結果統計。",
             type: "integer",
+            hidden: () => isAllTitlesSelected(),
             value: (_, period) => getActiveHeadcount(period, context.titles),
           },
           {
@@ -1166,6 +1211,7 @@
             label: "{titles}人數佔率",
             note: "依目前職級複選結果統計。",
             type: "percent",
+            hidden: () => isAllTitlesSelected(),
             value: (_, period) => safeDivide(getActiveHeadcount(period, context.titles), getActiveHeadcount(period)),
           },
           {
@@ -1173,6 +1219,7 @@
             label: "{titles}業績",
             note: "依目前職級複選結果統計。",
             type: "currency",
+            hidden: () => isAllTitlesSelected(),
             value: (rows) => getRevenueByTitles(rows, context.product, context.titles),
           },
           {
@@ -1180,6 +1227,7 @@
             label: "{titles}業績佔率",
             note: "分母採同類母體。",
             type: "percent",
+            hidden: () => isAllTitlesSelected(),
             value: (rows) => safeDivide(getRevenueByTitles(rows, context.product, context.titles), getRevenue(rows, context.product)),
           },
           {
@@ -1187,7 +1235,7 @@
             label: "營Top1業績",
             note: "通路 = 營業處時適用。",
             type: "currency",
-            hidden: () => context.channel !== "營業處",
+            hidden: () => context.channel !== "營業處" || isAllTitlesSelected(),
             value: (rows) => getOfficeRevenueRank(rows, context.product, 1),
           },
           {
@@ -1195,7 +1243,7 @@
             label: "營Top1業績佔率",
             note: "通路 = 營業處時適用。",
             type: "percent",
-            hidden: () => context.channel !== "營業處",
+            hidden: () => context.channel !== "營業處" || isAllTitlesSelected(),
             value: (rows) => safeDivide(getOfficeRevenueRank(rows, context.product, 1), getRevenue(rows, context.product)),
           },
           {
@@ -1203,7 +1251,7 @@
             label: "營Top5業績",
             note: "通路 = 營業處時適用。",
             type: "currency",
-            hidden: () => context.channel !== "營業處",
+            hidden: () => context.channel !== "營業處" || isAllTitlesSelected(),
             value: (rows) => getOfficeRevenueRank(rows, context.product, 5),
           },
           {
@@ -1211,7 +1259,7 @@
             label: "營Top5業績佔率",
             note: "通路 = 營業處時適用。",
             type: "percent",
-            hidden: () => context.channel !== "營業處",
+            hidden: () => context.channel !== "營業處" || isAllTitlesSelected(),
             value: (rows) => safeDivide(getOfficeRevenueRank(rows, context.product, 5), getRevenue(rows, context.product)),
           },
           {
@@ -1219,7 +1267,7 @@
             label: "營Top10業績",
             note: "通路 = 營業處時適用。",
             type: "currency",
-            hidden: () => context.channel !== "營業處",
+            hidden: () => context.channel !== "營業處" || isAllTitlesSelected(),
             value: (rows) => getOfficeRevenueRank(rows, context.product, 10),
           },
           {
@@ -1227,7 +1275,7 @@
             label: "營Top10業績佔率",
             note: "通路 = 營業處時適用。",
             type: "percent",
-            hidden: () => context.channel !== "營業處",
+            hidden: () => context.channel !== "營業處" || isAllTitlesSelected(),
             value: (rows) => safeDivide(getOfficeRevenueRank(rows, context.product, 10), getRevenue(rows, context.product)),
           },
         ],
