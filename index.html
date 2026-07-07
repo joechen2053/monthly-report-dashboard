@@ -136,7 +136,7 @@
 
     .toolbar-top {
       display: flex;
-      justify-content: flex-end;
+      justify-content: space-between;
       align-items: center;
       gap: 12px;
       flex-wrap: wrap;
@@ -144,7 +144,7 @@
 
     .unit-label {
       color: var(--muted);
-      font-size: 14px;
+      font-size: 11px;
       font-weight: 700;
     }
 
@@ -251,13 +251,9 @@
 
     .warning {
       display: none;
-      margin-top: 14px;
-      border-left: 4px solid var(--gold);
-      background: #fff8e8;
-      color: #6a5120;
-      border-radius: 14px;
-      padding: 12px 14px;
-      line-height: 1.7;
+      margin-top: 8px;
+      color: #8a5d16;
+      line-height: 1.6;
       font-size: 12px;
     }
 
@@ -268,7 +264,7 @@
     .table-wrap {
       overflow-x: auto;
       overflow-y: auto;
-      max-height: calc(100vh - 280px);
+      max-height: calc(100vh - 220px);
       border-radius: 14px;
       border: 1px solid var(--line);
       background: #fff;
@@ -289,7 +285,7 @@
       font-size: 16px;
       letter-spacing: 0.04em;
       text-align: right;
-      padding: 14px 10px;
+      padding: 12px 10px;
       border-bottom: 1px solid #8a1a29;
       box-shadow: 0 1px 0 rgba(76, 45, 33, 0.08);
     }
@@ -299,7 +295,7 @@
     }
 
     tbody td {
-      padding: 12px 10px;
+      padding: 9px 10px;
       border-bottom: 1px solid #e3d9cc;
       font-size: 16px;
       vertical-align: top;
@@ -342,9 +338,9 @@
     .bad { color: #b0342f; }
 
     .footnote {
-      margin-top: 14px;
+      margin-top: 8px;
       color: var(--muted);
-      font-size: 13px;
+      font-size: 12px;
       line-height: 1.8;
     }
 
@@ -370,7 +366,7 @@
         min-width: 0;
       }
       .table-wrap {
-        max-height: calc(100vh - 240px);
+        max-height: calc(100vh - 210px);
       }
       .toolbar-top { align-items: flex-start; }
     }
@@ -386,6 +382,7 @@
       <div class="toolbar">
         <div class="toolbar-top">
           <div class="status" id="statusText" hidden>尚未載入資料。</div>
+          <div class="unit-label">業績單位：萬元</div>
         </div>
         <div class="filter-grid">
           <div class="filter-item compact">
@@ -441,10 +438,7 @@
 
         <div class="warning" id="warningBox"></div>
 
-        <div class="footnote" id="footnote">
-          <div class="unit-label">業績單位：萬元</div>
-          指標命名與規則依目前文件版本實作。展業效率、增員育留、組織結構等人員相關指標會用 <code>業務組織</code> 試算表與 <code>g_position</code> 組織關係計算。
-        </div>
+        <div class="footnote" id="footnote"></div>
     </main>
   </div>
 
@@ -1345,7 +1339,7 @@
       const box = $("warningBox");
       if (warnings.length) {
         box.classList.add("show");
-        box.innerHTML = warnings.join("<br>");
+        box.innerHTML = warnings.map((warning) => `※ ${warning}`).join("<br>");
       } else {
         box.classList.remove("show");
         box.textContent = "";
@@ -1395,11 +1389,7 @@
         .join("");
 
       $("reportBody").innerHTML = rowsHtml || `<tr><td colspan="9" class="muted" style="padding:24px; text-align:left;">目前條件下沒有可顯示的指標。</td></tr>`;
-      const periodText = context.selectedMonth === "全部"
-        ? `${context.year} 年全年`
-        : getPeriodLabel(context.yyyymm);
-      const yearNote = context.selectedYear === "全部" ? "　|　年度選單為「全部」時，報表以資料中最新年度作為比較基準。" : "";
-      $("footnote").innerHTML = `<div class="unit-label">業績單位：萬元</div>分析期間：<code>${periodText}</code>　|　目前條件：<code>${context.metricCategory}</code> / <code>${context.channel}</code> / <code>${context.product === "全部" ? "全商品" : context.product}</code>${yearNote}`;
+      $("footnote").innerHTML = "";
     }
 
     async function useSheetRows(salesRows, orgRows) {
