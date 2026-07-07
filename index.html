@@ -107,7 +107,7 @@
     }
 
     select {
-      width: 140px;
+      width: 122px;
       border: 1px solid var(--line);
       border-radius: 10px;
       background: #fff;
@@ -151,10 +151,8 @@
     .filter-grid {
       display: flex;
       flex-wrap: nowrap;
-      gap: 12px 18px;
+      gap: 10px 12px;
       align-items: center;
-      overflow-x: auto;
-      padding-bottom: 2px;
     }
 
     .filter-item {
@@ -165,11 +163,19 @@
     }
 
     .filter-item.compact select {
-      width: 104px;
+      width: 82px;
     }
 
     .filter-item.wide select {
-      width: 164px;
+      width: 126px;
+    }
+
+    .filter-item.channel select {
+      width: 118px;
+    }
+
+    .filter-item.metric select {
+      width: 118px;
     }
 
     .title-filter {
@@ -189,17 +195,21 @@
     }
 
     .multi-select-button {
-      min-width: 172px;
+      width: 122px;
+      min-width: 122px;
       border: 1px solid var(--line);
       border-radius: 10px;
       background: #fff;
       color: var(--ink);
-      padding: 8px 12px;
+      padding: 8px 32px 8px 10px;
       font: inherit;
       font-size: 15px;
       text-align: left;
       box-shadow: none;
       cursor: pointer;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .multi-select-menu {
@@ -350,7 +360,6 @@
       }
       .filter-grid {
         flex-wrap: wrap;
-        overflow-x: visible;
       }
       label.file {
         justify-content: space-between;
@@ -383,7 +392,7 @@
             <label class="file" for="monthSelect">月份</label>
             <select id="monthSelect" disabled></select>
           </div>
-          <div class="filter-item wide">
+          <div class="filter-item wide channel">
             <label class="file" for="channelSelect">通路</label>
             <select id="channelSelect" disabled></select>
           </div>
@@ -391,7 +400,7 @@
             <label class="file" for="productSelect">產品類別</label>
             <select id="productSelect" disabled></select>
           </div>
-          <div class="filter-item wide">
+          <div class="filter-item wide metric">
             <label class="file" for="metricCategorySelect">指標類別</label>
             <select id="metricCategorySelect" disabled></select>
           </div>
@@ -1235,7 +1244,7 @@
             label: "營Top1業績",
             note: "通路 = 營業處時適用。",
             type: "currency",
-            hidden: () => context.channel !== "營業處" || isAllTitlesSelected(),
+            hidden: () => context.channel !== "營業處",
             value: (rows) => getOfficeRevenueRank(rows, context.product, 1),
           },
           {
@@ -1243,7 +1252,7 @@
             label: "營Top1業績佔率",
             note: "通路 = 營業處時適用。",
             type: "percent",
-            hidden: () => context.channel !== "營業處" || isAllTitlesSelected(),
+            hidden: () => context.channel !== "營業處",
             value: (rows) => safeDivide(getOfficeRevenueRank(rows, context.product, 1), getRevenue(rows, context.product)),
           },
           {
@@ -1251,7 +1260,7 @@
             label: "營Top5業績",
             note: "通路 = 營業處時適用。",
             type: "currency",
-            hidden: () => context.channel !== "營業處" || isAllTitlesSelected(),
+            hidden: () => context.channel !== "營業處",
             value: (rows) => getOfficeRevenueRank(rows, context.product, 5),
           },
           {
@@ -1259,7 +1268,7 @@
             label: "營Top5業績佔率",
             note: "通路 = 營業處時適用。",
             type: "percent",
-            hidden: () => context.channel !== "營業處" || isAllTitlesSelected(),
+            hidden: () => context.channel !== "營業處",
             value: (rows) => safeDivide(getOfficeRevenueRank(rows, context.product, 5), getRevenue(rows, context.product)),
           },
           {
@@ -1267,7 +1276,7 @@
             label: "營Top10業績",
             note: "通路 = 營業處時適用。",
             type: "currency",
-            hidden: () => context.channel !== "營業處" || isAllTitlesSelected(),
+            hidden: () => context.channel !== "營業處",
             value: (rows) => getOfficeRevenueRank(rows, context.product, 10),
           },
           {
@@ -1275,7 +1284,7 @@
             label: "營Top10業績佔率",
             note: "通路 = 營業處時適用。",
             type: "percent",
-            hidden: () => context.channel !== "營業處" || isAllTitlesSelected(),
+            hidden: () => context.channel !== "營業處",
             value: (rows) => safeDivide(getOfficeRevenueRank(rows, context.product, 10), getRevenue(rows, context.product)),
           },
         ],
