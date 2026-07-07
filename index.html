@@ -1071,23 +1071,34 @@
           {
             key: "productiveHeadcount",
             label: "實動人數",
-            note: "當月有業績貢獻的主任級(含)以上人數。",
+            note: "單月為當月有業績貢獻的主任級(含)以上人數；累計為累計期間各月實動人數月均值。",
             type: "integer",
             value: (rows) => getProductiveHeadcount(rows, context.product),
+            ytdValue: (_, periods) => averageMonthlyValue(periods, context, (rows) => getProductiveHeadcount(rows, context.product)),
           },
           {
             key: "productiveRate",
             label: "實動率",
-            note: "實動人數 / 在職人數。",
+            note: "單月為實動人數 / 在職人數；累計為累計期間各月實動率月均值。",
             type: "percent",
             value: (rows, period) => safeDivide(getProductiveHeadcount(rows, context.product), getActiveHeadcount(period)),
+            ytdValue: (_, periods) => averageMonthlyValue(
+              periods,
+              context,
+              (rows, period) => safeDivide(getProductiveHeadcount(rows, context.product), getActiveHeadcount(period))
+            ),
           },
           {
             key: "revenuePerHead",
             label: "產值",
-            note: "每位實動人員平均產出。",
+            note: "單月為每位實動人員平均產出；累計為累計期間各月產值月均值。",
             type: "currency",
             value: (rows) => safeDivide(getRevenue(rows, context.product), getProductiveHeadcount(rows, context.product)),
+            ytdValue: (_, periods) => averageMonthlyValue(
+              periods,
+              context,
+              (rows) => safeDivide(getRevenue(rows, context.product), getProductiveHeadcount(rows, context.product))
+            ),
           },
           {
             key: "customerCount",
@@ -1114,9 +1125,14 @@
           {
             key: "customersPerHead",
             label: "人均客數",
-            note: "每位實動人員平均服務客戶數。",
+            note: "單月為每位實動人員平均服務客戶數；累計為累計期間各月人均客數月均值。",
             type: "decimal",
             value: (rows) => safeDivide(getCustomerCount(rows, context.product), getProductiveHeadcount(rows, context.product)),
+            ytdValue: (_, periods) => averageMonthlyValue(
+              periods,
+              context,
+              (rows) => safeDivide(getCustomerCount(rows, context.product), getProductiveHeadcount(rows, context.product))
+            ),
           },
         ],
         "付款方式": [
