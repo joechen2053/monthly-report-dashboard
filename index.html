@@ -528,7 +528,7 @@
 
     function getCountGroup(rawCategory) {
       const value = normalizeText(rawCategory);
-      if (value === "契約" || value === "塔位" || value === "墓園") return value;
+      if (value === "契約" || value === "塔位" || value === "墓園" || value === "寵物塔位") return value === "寵物塔位" ? "塔位" : value;
       return null;
     }
 
@@ -879,10 +879,6 @@
       return getDealCountEligibleRows(rows, product).reduce((sum, row) => sum + parseNumber(row["數量"]), 0);
     }
 
-    function getRevenueForDealCount(rows, product) {
-      return getDealCountEligibleRows(rows, product).reduce((sum, row) => sum + parseNumber(row["管報金額"]), 0);
-    }
-
     function getCustomerCount(rows, product) {
       const set = new Set();
       for (const row of filterSalesRowsByProduct(rows, product, false)) {
@@ -1015,7 +1011,7 @@
           {
             key: "dealCount",
             label: "{product}件數",
-            note: "只算契約 / 塔位 / 墓園，且僅計入數量 = 1 的業績列。",
+            note: "只算契約 / 塔位 / 寵物塔位 / 墓園，且僅計入數量 = 1 的業績列。",
             type: "integer",
             value: (rows) => getDealCount(rows, context.product),
           },
@@ -1030,9 +1026,9 @@
           {
             key: "avgUnitPrice",
             label: "{product}平均單價",
-            note: "平均單價 = 有計入件數的業績金額 / 件數。",
+            note: "平均單價 = 同類業績金額 / 件數；分子包含未計入件數的業績。",
             type: "currency",
-            value: (rows) => safeDivide(getRevenueForDealCount(rows, context.product), getDealCount(rows, context.product)),
+            value: (rows) => safeDivide(getRevenue(rows, context.product), getDealCount(rows, context.product)),
           },
           {
             key: "bigOrderRevenueRatio",
