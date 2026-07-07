@@ -27,29 +27,38 @@
 
     * { box-sizing: border-box; }
 
+    html, body {
+      height: 100%;
+    }
+
     body {
       margin: 0;
       font-family: "Noto Sans TC", sans-serif;
       font-size: 13px;
       color: var(--ink);
       background: linear-gradient(180deg, #fbf8f2 0%, var(--bg) 100%);
+      overflow: hidden;
     }
 
     .shell {
       max-width: 1520px;
       margin: 0 auto;
-      padding: 22px 20px 40px;
+      min-height: 100vh;
+      padding: 14px 18px 14px;
+      display: flex;
+      flex-direction: column;
     }
 
     .hero {
-      padding: 0 0 12px;
-      margin-bottom: 8px;
+      padding: 0 0 6px;
+      margin-bottom: 2px;
+      flex: 0 0 auto;
     }
 
     h1 {
       margin: 0;
       font-family: "Noto Sans TC", sans-serif;
-      font-size: clamp(15px, 2vw, 22px);
+      font-size: clamp(13px, 1.6vw, 18px);
       line-height: 1.1;
       font-weight: 800;
       letter-spacing: 0.01em;
@@ -61,6 +70,11 @@
       border: 1px solid #e3d9cc;
       border-radius: var(--radius);
       box-shadow: var(--shadow);
+      flex: 1 1 auto;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
     }
 
     .section-title {
@@ -125,27 +139,27 @@
     }
 
     .report {
-      padding: 18px 18px 16px;
+      padding: 14px 16px 12px;
     }
 
     .toolbar {
       display: grid;
-      gap: 10px;
-      margin-bottom: 14px;
-    }
-
-    .toolbar-top {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 12px;
-      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 10px;
+      flex: 0 0 auto;
     }
 
     .unit-label {
       color: var(--muted);
       font-size: 11px;
       font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .filter-unit {
+      margin-left: auto;
+      align-self: center;
+      text-align: right;
     }
 
     .filter-grid {
@@ -251,10 +265,11 @@
 
     .warning {
       display: none;
-      margin-top: 8px;
+      margin-top: 6px;
       color: #8a5d16;
       line-height: 1.6;
       font-size: 12px;
+      flex: 0 0 auto;
     }
 
     .warning.show {
@@ -262,9 +277,10 @@
     }
 
     .table-wrap {
+      flex: 1 1 auto;
+      min-height: 0;
       overflow-x: auto;
       overflow-y: auto;
-      max-height: calc(100vh - 220px);
       border-radius: 14px;
       border: 1px solid var(--line);
       background: #fff;
@@ -338,10 +354,11 @@
     .bad { color: #b0342f; }
 
     .footnote {
-      margin-top: 8px;
+      margin-top: 6px;
       color: var(--muted);
       font-size: 12px;
       line-height: 1.8;
+      flex: 0 0 auto;
     }
 
     @media (max-width: 1100px) {
@@ -349,6 +366,9 @@
     }
 
     @media (max-width: 640px) {
+      body {
+        overflow: auto;
+      }
       .shell { padding: 14px 10px 30px; }
       .report { border-radius: 20px; }
       .filter-grid, .filter-item, .title-filter.show {
@@ -366,9 +386,12 @@
         min-width: 0;
       }
       .table-wrap {
-        max-height: calc(100vh - 210px);
+        max-height: none;
       }
-      .toolbar-top { align-items: flex-start; }
+      .filter-unit {
+        margin-left: 0;
+        justify-self: end;
+      }
     }
   </style>
 </head>
@@ -380,10 +403,7 @@
 
     <main class="report">
       <div class="toolbar">
-        <div class="toolbar-top">
-          <div class="status" id="statusText" hidden>尚未載入資料。</div>
-          <div class="unit-label">業績單位：萬元</div>
-        </div>
+        <div class="status" id="statusText" hidden>尚未載入資料。</div>
         <div class="filter-grid">
           <div class="filter-item compact">
             <label class="file" for="yearSelect">年度</label>
@@ -412,6 +432,7 @@
               <div class="multi-select-menu" id="titlePills"></div>
             </div>
           </div>
+          <div class="unit-label filter-unit">業績單位：萬元</div>
         </div>
       </div>
 
