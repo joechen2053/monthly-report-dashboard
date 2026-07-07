@@ -895,10 +895,18 @@
     function getPaymentRows(rows, product, kind) {
       return filterSalesRowsByProduct(rows, product, false).filter((row) => {
         const payment = normalizeText(row["付款方式類別"]);
-        if (kind === "installment") return payment.includes("分期");
-        if (kind === "cash") return payment.includes("現金");
+        const isInstallment = payment.includes("分期");
+        if (kind === "installment") return isInstallment;
+        if (kind === "cash") return !isInstallment;
         return false;
       });
+    }
+
+    function getHireCount(period, statuses) {
+      return state.orgRows.filter((row) => (
+        normalizeText(row["年月"]) === period
+        && statuses.includes(normalizeText(row["報聘狀況"]))
+      )).length;
     }
 
     function getSelfPurchaseRows(rows, product) {
@@ -1207,22 +1215,24 @@
             label: "新進報聘人數",
             note: "當月報聘狀況 = 新進。",
             type: "integer",
-            value: (_, period) => state.orgRows.filter((row) => normalizeText(row["年月"]) === period && normalizeText(row["報聘狀況"]) === "新進").length,
+            value: (_, period) => getHireCount(period, ["新進"]),
+            ytdValue: (_, periods) => periods.reduce((sum, period) => sum + getHireCount(period, ["新進"]), 0),
           },
           {
             key: "rehireCount",
             label: "重新報聘人數",
             note: "當月報聘狀況 = 重新報聘。",
             type: "integer",
-            value: (_, period) => state.orgRows.filter((row) => normalizeText(row["年月"]) === period && normalizeText(row["報聘狀況"]) === "重新報聘").length,
+            value: (_, period) => getHireCount(period, ["重新報聘"]),
+            ytdValue: (_, periods) => periods.reduce((sum, period) => sum + getHireCount(period, ["重新報聘"]), 0),
           },
           {
             key: "totalHireCount",
             label: "合計報聘人數",
             note: "新進 + 重新報聘。",
             type: "integer",
-            value: (_, period) =>
-              state.orgRows.filter((row) => normalizeText(row["年月"]) === period && ["新進", "重新報聘"].includes(normalizeText(row["報聘狀況"]))).length,
+            value: (_, period) => getHireCount(period, ["新進", "重新報聘"]),
+            ytdValue: (_, periods) => periods.reduce((sum, period) => sum + getHireCount(period, ["新進", "重新報聘"]), 0),
           },
           {
             key: "retention6",
