@@ -1259,14 +1259,7 @@
             label: "6個月續留率",
             note: "以 6 個月前報聘 cohort 計算。",
             type: "percent",
-            value: (_, period) => {
-              const newRate = getRetentionRate(period, "新進", 6);
-              const rehireRate = getRetentionRate(period, "重新報聘", 6);
-              if (newRate === null && rehireRate === null) return null;
-              if (newRate === null) return rehireRate;
-              if (rehireRate === null) return newRate;
-              return (newRate + rehireRate) / 2;
-            },
+            value: (_, period) => getWeightedRetentionRate([period], 6),
             ytdValue: (_, periods) => getWeightedRetentionRate(periods, 6),
           },
           {
@@ -1274,14 +1267,7 @@
             label: "12個月續留率",
             note: "以 12 個月前報聘 cohort 計算。",
             type: "percent",
-            value: (_, period) => {
-              const newRate = getRetentionRate(period, "新進", 12);
-              const rehireRate = getRetentionRate(period, "重新報聘", 12);
-              if (newRate === null && rehireRate === null) return null;
-              if (newRate === null) return rehireRate;
-              if (rehireRate === null) return newRate;
-              return (newRate + rehireRate) / 2;
-            },
+            value: (_, period) => getWeightedRetentionRate([period], 12),
             ytdValue: (_, periods) => getWeightedRetentionRate(periods, 12),
           },
         ],
@@ -1481,11 +1467,11 @@
               <td class="num">${formatValue(currentValue, metric.type)}</td>
               <td class="num">${formatValue(prevValue, metric.type)}</td>
               <td>${formatDelta(monthDelta, metric.type)}</td>
-              <td class="num">${formatValue(monthDeltaRate, "percent")}</td>
+              <td>${formatDelta(monthDeltaRate, "percent")}</td>
               <td class="num">${formatValue(currentYtdValue, metric.type)}</td>
               <td class="num">${formatValue(prevYtdValue, metric.type)}</td>
               <td>${formatDelta(ytdDelta, metric.type)}</td>
-              <td class="num">${formatValue(ytdDeltaRate, "percent")}</td>
+              <td>${formatDelta(ytdDeltaRate, "percent")}</td>
             </tr>
           `;
         })
