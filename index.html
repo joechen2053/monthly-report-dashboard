@@ -267,7 +267,8 @@
 
     .table-wrap {
       overflow-x: auto;
-      overflow-y: visible;
+      overflow-y: auto;
+      max-height: calc(100vh - 280px);
       border-radius: 14px;
       border: 1px solid var(--line);
       background: #fff;
@@ -367,6 +368,9 @@
       select, .multi-select-button {
         width: 100%;
         min-width: 0;
+      }
+      .table-wrap {
+        max-height: calc(100vh - 240px);
       }
       .toolbar-top { align-items: flex-start; }
     }
