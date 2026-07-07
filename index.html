@@ -646,12 +646,23 @@
       return url.toString();
     }
 
+    function toSpreadsheetColumnLabel(index) {
+      let value = index + 1;
+      let label = "";
+      while (value > 0) {
+        const remainder = (value - 1) % 26;
+        label = String.fromCharCode(65 + remainder) + label;
+        value = Math.floor((value - 1) / 26);
+      }
+      return label;
+    }
+
     function dataTableToObjects(dataTable) {
       const initialHeaders = Array.from({ length: dataTable.getNumberOfColumns() }, (_, colIndex) => {
         return normalizeText(dataTable.getColumnLabel(colIndex)) || normalizeText(dataTable.getColumnId(colIndex)) || `COL_${colIndex + 1}`;
       });
       const shouldUseFirstRowAsHeader = initialHeaders.every((header, colIndex) => {
-        const generic = header === String.fromCharCode(65 + colIndex) || header === `COL_${colIndex + 1}`;
+        const generic = header === toSpreadsheetColumnLabel(colIndex) || header === `COL_${colIndex + 1}`;
         return generic;
       }) && dataTable.getNumberOfRows() > 0;
 
@@ -729,7 +740,7 @@
     }
 
     function updateMonthOptions(selectedYear, preferredMonth = null) {
-      const months = ["全部", ...getAvailableMonthsForYear(selectedYear)];
+      const months = getAvailableMonthsForYear(selectedYear);
       const fallbackMonth = selectedYear === "全部"
         ? getLatestOrgMonthForYear(getAvailableYears().at(-1))
         : getLatestOrgMonthForYear(selectedYear);
@@ -822,13 +833,9 @@
       const availableYears = getAvailableYears();
       const year = selectedYear === "全部" ? availableYears.at(-1) : selectedYear;
       const prevYear = String(Number(year) - 1).padStart(3, "0");
-      const month = selectedMonth === "全部" ? getLatestMonthForYear(year) : selectedMonth;
-      const currentPeriods = selectedMonth === "全部"
-        ? getAvailableMonthsForYear(year).map((item) => formatMinguoMonth(year, Number(item)))
-        : [formatMinguoMonth(year, Number(selectedMonth))];
-      const prevPeriods = selectedMonth === "全部"
-        ? getAvailableMonthsForYear(prevYear).map((item) => formatMinguoMonth(prevYear, Number(item)))
-        : [formatMinguoMonth(prevYear, Number(selectedMonth))];
+      const month = selectedMonth || getLatestMonthForYear(year);
+      const currentPeriods = [formatMinguoMonth(year, Number(month))];
+      const prevPeriods = [formatMinguoMonth(prevYear, Number(month))];
       const yyyymm = currentPeriods.at(-1) || `${year}${month}`;
       return {
         selectedYear,
@@ -839,8 +846,8 @@
         prevYyyymm: prevPeriods.at(-1) || getPrevYearMonth(yyyymm),
         currentPeriods,
         prevPeriods,
-        ytdMonths: selectedMonth === "全部" ? currentPeriods : getYtdMonths(yyyymm),
-        prevYtdMonths: selectedMonth === "全部" ? prevPeriods : getYtdMonths(getPrevYearMonth(yyyymm)),
+        ytdMonths: getYtdMonths(yyyymm),
+        prevYtdMonths: getYtdMonths(getPrevYearMonth(yyyymm)),
         channel: $("channelSelect").value,
         product: $("productSelect").value,
         metricCategory: $("metricCategorySelect").value,
