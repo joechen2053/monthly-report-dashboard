@@ -979,7 +979,7 @@
       return `${String(date.getFullYear() - 1911).padStart(3, "0")}${String(date.getMonth() + 1).padStart(2, "0")}`;
     }
 
-    function getRetentionRate(yyyymm, hireType, months) {
+    function getRetentionStats(yyyymm, hireType, months) {
       const cohortMonth = subtractMonths(yyyymm, months);
       const cohort = state.orgRows.filter((row) => normalizeText(row["年月"]) === cohortMonth && normalizeText(row["報聘狀況"]) === hireType);
       if (!cohort.length) return null;
@@ -993,7 +993,27 @@
         const current = currentMonthMap.get(normalizeText(row["業務身份證字號"]));
         if (current && isOrgRowActive(current)) retained += 1;
       }
-      return retained / cohort.length;
+      return { retained, total: cohort.length };
+    }
+
+    function getRetentionRate(yyyymm, hireType, months) {
+      const stats = getRetentionStats(yyyymm, hireType, months);
+      if (!stats) return null;
+      return stats.retained / stats.total;
+    }
+
+    function getWeightedRetentionRate(periods, months) {
+      let retainedTotal = 0;
+      let cohortTotal = 0;
+      for (const period of periods) {
+        for (const hireType of ["新進", "重新報聘"]) {
+          const stats = getRetentionStats(period, hireType, months);
+          if (!stats) continue;
+          retainedTotal += stats.retained;
+          cohortTotal += stats.total;
+        }
+      }
+      return safeDivide(retainedTotal, cohortTotal);
     }
 
     function safeDivide(numerator, denominator) {
@@ -1247,6 +1267,7 @@
               if (rehireRate === null) return newRate;
               return (newRate + rehireRate) / 2;
             },
+            ytdValue: (_, periods) => getWeightedRetentionRate(periods, 6),
           },
           {
             key: "retention12",
@@ -1261,6 +1282,7 @@
               if (rehireRate === null) return newRate;
               return (newRate + rehireRate) / 2;
             },
+            ytdValue: (_, periods) => getWeightedRetentionRate(periods, 12),
           },
         ],
         "組織結構": [
