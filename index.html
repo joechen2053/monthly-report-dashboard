@@ -916,8 +916,17 @@
       return state.orgRows.filter((row) => normalizeText(row["年月"]) === yyyymm && isSupervisorTitle(row["職稱"]) && isOrgRowActive(row));
     }
 
+    function shouldExcludeChiefFromTitleMetrics(row, groupedTitle) {
+      return groupedTitle === "處長" && normalizeText(row["營業處名稱"]) === "行政處6D";
+    }
+
     function getActiveHeadcount(yyyymm, titles = null) {
-      const rows = getActiveOrgRows(yyyymm).filter((row) => !titles || titles.includes(getTitleGroup(row["職稱"])));
+      const rows = getActiveOrgRows(yyyymm).filter((row) => {
+        const groupedTitle = getTitleGroup(row["職稱"]);
+        if (titles && !titles.includes(groupedTitle)) return false;
+        if (titles && shouldExcludeChiefFromTitleMetrics(row, groupedTitle)) return false;
+        return true;
+      });
       return new Set(rows.map((row) => normalizeText(row["業務身份證字號"]))).size;
     }
 
@@ -940,6 +949,7 @@
         if (!owner) return sum;
         const groupedTitle = getTitleGroup(owner["職稱"]);
         if (!titles.includes(groupedTitle)) return sum;
+        if (shouldExcludeChiefFromTitleMetrics(owner, groupedTitle)) return sum;
         return sum + parseNumber(row["管報金額"]);
       }, 0);
     }
