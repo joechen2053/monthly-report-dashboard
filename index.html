@@ -157,6 +157,7 @@
       gap: 8px;
       margin-bottom: 10px;
       flex: 0 0 auto;
+      position: relative;
     }
 
     .unit-label {
@@ -351,6 +352,46 @@
       cursor: help;
     }
 
+    .drill-link {
+      color: inherit;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    .ghost-filter {
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    #drillBackWrap {
+      position: absolute;
+      z-index: 1;
+    }
+
+    #drillBackWrap .multi-select {
+      position: relative;
+    }
+
+    #drillBackWrap .multi-select-button {
+      width: 34px;
+      min-width: 34px;
+      height: 36px;
+      padding: 0;
+      text-align: center;
+      border-radius: 8px;
+      border-color: #7fd34e;
+      background:
+        #fff
+        center / 18px 18px
+        no-repeat
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%2300a325' d='M12 4a8 8 0 1 0 7.2 11.5h-3.1A5.5 5.5 0 1 1 12 6.5V10l6-4-6-4z'/%3E%3C/svg%3E");
+      font-size: 0;
+    }
+
+    #drillBackWrap .multi-select-button[hidden] {
+      display: none;
+    }
+
     .num {
       font-variant-numeric: tabular-nums;
       white-space: nowrap;
@@ -427,19 +468,17 @@
             <label class="file" for="channelSelect">通路</label>
             <select id="channelSelect" disabled></select>
           </div>
-          <div class="filter-item wide">
-            <label class="file" for="productSelect">產品類別</label>
-            <select id="productSelect" disabled></select>
-          </div>
           <div class="filter-item wide metric">
-            <label class="file" for="metricCategorySelect">指標類別</label>
-            <select id="metricCategorySelect" disabled></select>
+            <label class="file" for="statItemSelect">統計項目</label>
+            <select id="statItemSelect" disabled></select>
           </div>
-          <div class="title-filter" id="titleFilterCard">
-            <label class="file" for="titleFilterButton">職級</label>
-            <div class="multi-select" id="titleMultiSelect">
-              <button type="button" class="multi-select-button" id="titleFilterButton">全部職級</button>
-              <div class="multi-select-menu" id="titlePills"></div>
+          <div class="filter-item wide ghost-filter" aria-hidden="true">
+            <label class="file" for="ghostProductSelect">產品類別</label>
+            <select id="ghostProductSelect" disabled tabindex="-1"></select>
+          </div>
+          <div class="title-filter show" id="drillBackWrap">
+            <div class="multi-select">
+              <button type="button" class="multi-select-button" id="drillBackButton" hidden aria-label="返回上一層">&#x2039;</button>
             </div>
           </div>
           <div class="unit-label filter-unit">業績單位：萬元</div>
@@ -450,7 +489,7 @@
           <table>
             <thead>
               <tr>
-                <th>指標</th>
+                <th id="firstColumnHeader">產品項目</th>
                 <th>今年單月</th>
                 <th>去年單月</th>
                 <th>單月增減額</th>
@@ -483,9 +522,26 @@
       sheetName: "工作表1",
     };
 
-    const titleOptions = ["處長", "副處長", "協理", "經理", "主任"];
-    const metricCategories = ["產品銷售", "展業效率", "付款方式", "增員育留", "組織結構"];
-    const productOptions = ["全部", "契約", "塔位", "墓園"];
+    const STATISTIC_OPTIONS = [
+      { id: "產品銷售__revenue", category: "產品銷售", key: "revenue", label: "業績" },
+      { id: "產品銷售__dealCount", category: "產品銷售", key: "dealCount", label: "件數" },
+      { id: "產品銷售__mixRatio", category: "產品銷售", key: "mixRatio", label: "業績佔率" },
+      { id: "產品銷售__avgUnitPrice", category: "產品銷售", key: "avgUnitPrice", label: "平均單價" },
+      { id: "產品銷售__bigOrderRevenueRatio", category: "產品銷售", key: "bigOrderRevenueRatio", label: "大單業績佔率" },
+      { id: "產品銷售__bigOrderCountRatio", category: "產品銷售", key: "bigOrderCountRatio", label: "大單件數佔率" },
+      { id: "展業效率__productiveHeadcount", category: "展業效率", key: "productiveHeadcount", label: "實動人數" },
+      { id: "展業效率__productiveRate", category: "展業效率", key: "productiveRate", label: "實動率" },
+      { id: "展業效率__revenuePerHead", category: "展業效率", key: "revenuePerHead", label: "產值" },
+      { id: "展業效率__customerCount", category: "展業效率", key: "customerCount", label: "客戶人數" },
+      { id: "展業效率__avgRevenuePerCustomer", category: "展業效率", key: "avgRevenuePerCustomer", label: "客均單價" },
+      { id: "展業效率__avgDealsPerCustomer", category: "展業效率", key: "avgDealsPerCustomer", label: "客均件數" },
+      { id: "展業效率__customersPerHead", category: "展業效率", key: "customersPerHead", label: "人均客數" },
+      { id: "付款方式__installmentRevenue", category: "付款方式", key: "installmentRevenue", label: "分期件業績" },
+      { id: "付款方式__installmentRatio", category: "付款方式", key: "installmentRatio", label: "分期件佔率" },
+      { id: "付款方式__cashRevenue", category: "付款方式", key: "cashRevenue", label: "現金件業績" },
+      { id: "付款方式__cashRatio", category: "付款方式", key: "cashRatio", label: "現金件佔率" },
+      { id: "付款方式__selfPurchaseRatio", category: "付款方式", key: "selfPurchaseRatio", label: "自購件占比" },
+    ];
     const channelOptions = [
       { value: "全部", label: "全部" },
       { value: "營業處", label: "營業處" },
@@ -505,8 +561,10 @@
       orgRows: [],
       orgMonthIndex: new Map(),
       orgResolutionCache: new Map(),
+      allNodesCache: [],
+      childNodeMap: new Map(),
       loaded: false,
-      selectedTitles: new Set(["經理", "主任"]),
+      currentProductView: "root",
     };
 
     const $ = (id) => document.getElementById(id);
@@ -767,14 +825,14 @@
       fillSelect($("yearSelect"), ["全部", ...years], defaultYear);
       updateMonthOptions(defaultYear, defaultMonth);
       fillSelect($("channelSelect"), channels, defaultChannel);
-      fillSelect($("productSelect"), productOptions, "全部");
-      fillSelect($("metricCategorySelect"), metricCategories, "產品銷售");
+      fillSelect($("statItemSelect"), STATISTIC_OPTIONS.map((item) => ({
+        value: item.id,
+        label: item.label,
+      })), STATISTIC_OPTIONS[0].id);
 
-      ["yearSelect", "monthSelect", "channelSelect", "productSelect", "metricCategorySelect"].forEach((id) => {
+      ["yearSelect", "monthSelect", "channelSelect", "statItemSelect"].forEach((id) => {
         $(id).disabled = false;
       });
-      renderTitleDropdown();
-      toggleTitleCard();
     }
 
     function fillSelect(el, values, selectedValue) {
@@ -790,49 +848,8 @@
       }
     }
 
-    function isAllTitlesSelected() {
-      return state.selectedTitles.size === titleOptions.length;
-    }
-
-    function getTitleSummary() {
-      if (isAllTitlesSelected()) return "全部職級";
-      return [...state.selectedTitles].join("、");
-    }
-
-    function renderTitleDropdown() {
-      $("titleFilterButton").textContent = getTitleSummary();
-      $("titlePills").innerHTML = titleOptions.map((title) => {
-        const checked = state.selectedTitles.has(title) ? "checked" : "";
-        return `
-          <label class="multi-select-option">
-            <input type="checkbox" data-title="${title}" ${checked}>
-            <span>${title}</span>
-          </label>
-        `;
-      }).join("");
-      $("titlePills").querySelectorAll("input[type='checkbox']").forEach((checkbox) => {
-        checkbox.addEventListener("change", () => {
-          const title = checkbox.dataset.title;
-          if (checkbox.checked) {
-            state.selectedTitles.add(title);
-          } else {
-            if (state.selectedTitles.size === 1) {
-              checkbox.checked = true;
-              return;
-            }
-            state.selectedTitles.delete(title);
-          }
-          $("titleFilterButton").textContent = getTitleSummary();
-          renderReport();
-        });
-      });
-    }
-
-    function toggleTitleCard() {
-      $("titleFilterCard").classList.toggle("show", $("metricCategorySelect").value === "組織結構");
-      if ($("metricCategorySelect").value !== "組織結構") {
-        $("titleMultiSelect").classList.remove("open");
-      }
+    function getSelectedStatisticOption() {
+      return STATISTIC_OPTIONS.find((item) => item.id === $("statItemSelect").value) || STATISTIC_OPTIONS[0];
     }
 
     function getSelectedContext() {
@@ -857,10 +874,197 @@
         ytdMonths: getYtdMonths(yyyymm),
         prevYtdMonths: getYtdMonths(getPrevYearMonth(yyyymm)),
         channel: $("channelSelect").value,
-        product: $("productSelect").value,
-        metricCategory: $("metricCategorySelect").value,
-        titles: [...state.selectedTitles],
+        statistic: getSelectedStatisticOption(),
       };
+    }
+
+    function buildScope(name, matcher) {
+      return { name, matcher };
+    }
+
+    function inferTowerGroup(row) {
+      const category = normalizeText(row["產品類別"]);
+      if (category === "寵物塔位") return "寵物塔位";
+
+      const tower = normalizeText(row["陵園塔別"]);
+      if (["真龍殿", "福田", "寶山", "嘉雲", "蓮園", "安泰"].includes(tower)) return tower;
+      if (["D系列", "H系列", "Q系列"].includes(tower)) return "等級商品";
+
+      const text = `${normalizeText(row["商品簡稱"])} ${normalizeText(row["產品名稱"])}`;
+      if (/真龍殿|寶藏殿|寶藏苑|雨珠|星辰|光之城|光之瀧|大清淨|晶典|繽紛|璽悅/.test(text)) return "真龍殿";
+      if (/福田|菩蓮|菩祥|琉金|晶華|傳世|萬福|藏金閣|永祿園|晴山園|聚賢園|自在軒|佛日|百合天堂|萬佛|福悅|詩雨樓/.test(text)) return "福田";
+      if (/寶山|寶祥|寶祐|寶蓮|寶恩|寶璽|桃花源|櫻悅|寶地樓|寶安廳|寶德廳|寶福廳|寶聚廳|寶祠廳|祥雲/.test(text)) return "寶山";
+      if (/嘉雲|嘉悅|龍祥|吉樂|天恩|牡丹|蓮華|水鑽|佛像|神佛大道|傳家|1H|5樓|6樓|7樓|8樓|B1/.test(text)) return "嘉雲";
+      if (/蓮園|晨光樓/.test(text)) return "蓮園";
+      if (/安泰/.test(text)) return "安泰";
+      if (/D系列|H系列|Q系列|等級/.test(text)) return "等級商品";
+      return null;
+    }
+
+    function inferCemeteryGroup(row) {
+      const field = normalizeText(row["陵園塔別"]);
+      if (field === "白沙灣") return "三芝陵園";
+      if (field === "世紀陵園") return "世紀陵園";
+      if (field === "福田") return "福田陵園";
+      if (field === "富岡") return "富岡陵園";
+      if (field === "安泰") return "安泰陵園";
+
+      const text = `${normalizeText(row["商品簡稱"])} ${normalizeText(row["產品名稱"])}`;
+      if (/白沙灣|日光庭園|印象|竹林|忘憂|美麗|荷風|造像|龍泰陵|霞山/.test(text)) return "三芝陵園";
+      if (/禾光/.test(text)) return "世紀陵園";
+      if (/聚賢園|晴山園/.test(text)) return "福田陵園";
+      if (/富岡|富綠|懷親園|沂園|天境/.test(text)) return "富岡陵園";
+      if (/安泰|朝福園|朝霞園|福壽園|美樂地/.test(text)) return "安泰陵園";
+      return null;
+    }
+
+    function inferSeriesGroup(row) {
+      const tower = normalizeText(row["陵園塔別"]);
+      if (tower === "D系列") return "D";
+      if (tower === "H系列") return "H";
+      if (tower === "Q系列") return "Q";
+
+      const text = `${normalizeText(row["商品簡稱"])} ${normalizeText(row["產品名稱"])}`;
+      const match = text.match(/等級：([DHQ])-/);
+      return match ? match[1] : null;
+    }
+
+    function getStaticProductNodes() {
+      return [
+        { id: "contract-total", parentId: "root", label: "契約商品", columnHeader: "產品名稱", scope: buildScope("契約商品", (row) => ["契約", "契約憑證"].includes(normalizeText(row["產品類別"]))) },
+        { id: "contract-rf", parentId: "contract-total", label: "圓融", scope: buildScope("圓融", (row) => normalizeText(row["產品類別"]) === "契約" && normalizeText(row["商品簡稱"]) === "圓融") },
+        { id: "contract-fh", parentId: "contract-total", label: "風華", scope: buildScope("風華", (row) => normalizeText(row["產品類別"]) === "契約" && normalizeText(row["商品簡稱"]) === "風華") },
+        { id: "contract-ya", parentId: "contract-total", label: "圓愛", scope: buildScope("圓愛", (row) => normalizeText(row["產品類別"]) === "契約" && normalizeText(row["商品簡稱"]) === "圓愛") },
+        { id: "contract-other", parentId: "contract-total", label: "其他契約", columnHeader: "產品名稱", childMode: "product", scope: buildScope("其他契約", (row) => normalizeText(row["產品類別"]) === "契約" && !["圓融", "風華", "圓愛"].includes(normalizeText(row["商品簡稱"]))) },
+        { id: "contract-voucher", parentId: "contract-total", label: "契約憑證", columnHeader: "產品名稱", childMode: "product", scope: buildScope("契約憑證", (row) => normalizeText(row["產品類別"]) === "契約憑證") },
+        { id: "tower-total", parentId: "root", label: "塔位商品", columnHeader: "塔別", scope: buildScope("塔位商品", (row) => ["塔位", "塔位憑證", "寵物塔位"].includes(normalizeText(row["產品類別"]))) },
+        { id: "tower-zld", parentId: "tower-total", label: "真龍殿", columnHeader: "產品名稱", childMode: "product", scope: buildScope("真龍殿", (row) => inferTowerGroup(row) === "真龍殿") },
+        { id: "tower-ft", parentId: "tower-total", label: "福田", columnHeader: "產品名稱", childMode: "product", scope: buildScope("福田", (row) => inferTowerGroup(row) === "福田") },
+        { id: "tower-bs", parentId: "tower-total", label: "寶山", columnHeader: "產品名稱", childMode: "product", scope: buildScope("寶山", (row) => inferTowerGroup(row) === "寶山") },
+        { id: "tower-jy", parentId: "tower-total", label: "嘉雲", columnHeader: "產品名稱", childMode: "product", scope: buildScope("嘉雲", (row) => inferTowerGroup(row) === "嘉雲") },
+        { id: "tower-ly", parentId: "tower-total", label: "蓮園", columnHeader: "產品名稱", childMode: "product", scope: buildScope("蓮園", (row) => inferTowerGroup(row) === "蓮園") },
+        { id: "tower-at", parentId: "tower-total", label: "安泰", columnHeader: "產品名稱", childMode: "product", scope: buildScope("安泰", (row) => inferTowerGroup(row) === "安泰") },
+        { id: "tower-grade", parentId: "tower-total", label: "等級商品", columnHeader: "系列", scope: buildScope("等級商品", (row) => inferTowerGroup(row) === "等級商品") },
+        { id: "tower-grade-d", parentId: "tower-grade", label: "D系列", columnHeader: "產品名稱", childMode: "product", scope: buildScope("D系列", (row) => inferSeriesGroup(row) === "D") },
+        { id: "tower-grade-h", parentId: "tower-grade", label: "H系列", columnHeader: "產品名稱", childMode: "product", scope: buildScope("H系列", (row) => inferSeriesGroup(row) === "H") },
+        { id: "tower-grade-q", parentId: "tower-grade", label: "Q系列", columnHeader: "產品名稱", childMode: "product", scope: buildScope("Q系列", (row) => inferSeriesGroup(row) === "Q") },
+        { id: "tower-pet", parentId: "tower-total", label: "寵物塔位", columnHeader: "產品名稱", childMode: "product", scope: buildScope("寵物塔位", (row) => inferTowerGroup(row) === "寵物塔位") },
+        { id: "grave-total", parentId: "root", label: "墓園商品", columnHeader: "陵園", scope: buildScope("墓園商品", (row) => normalizeText(row["產品類別"]) === "墓園") },
+        { id: "grave-sz", parentId: "grave-total", label: "三芝陵園", columnHeader: "產品名稱", childMode: "product", scope: buildScope("三芝陵園", (row) => inferCemeteryGroup(row) === "三芝陵園") },
+        { id: "grave-sj", parentId: "grave-total", label: "世紀陵園", columnHeader: "產品名稱", childMode: "product", scope: buildScope("世紀陵園", (row) => inferCemeteryGroup(row) === "世紀陵園") },
+        { id: "grave-ft", parentId: "grave-total", label: "福田陵園", columnHeader: "產品名稱", childMode: "product", scope: buildScope("福田陵園", (row) => inferCemeteryGroup(row) === "福田陵園") },
+        { id: "grave-fg", parentId: "grave-total", label: "富岡陵園", columnHeader: "產品名稱", childMode: "product", scope: buildScope("富岡陵園", (row) => inferCemeteryGroup(row) === "富岡陵園") },
+        { id: "grave-at", parentId: "grave-total", label: "安泰陵園", columnHeader: "產品名稱", childMode: "product", scope: buildScope("安泰陵園", (row) => inferCemeteryGroup(row) === "安泰陵園") },
+      ];
+    }
+
+    function buildDynamicProductNodes() {
+      if (!state.loaded) return [];
+      const nodes = [];
+      const parents = getStaticProductNodes().filter((node) => node.childMode === "product");
+
+      for (const parentNode of parents) {
+        const childMap = new Map();
+        for (const row of state.salesRows) {
+          if (!isTruthyY(row["業績認列"])) continue;
+          if (normalizeText(row["營業處名稱"]) === "業務開發處") continue;
+          if (!filterSalesRowsByProduct([row], parentNode.scope, false).length) continue;
+
+          const label = normalizeText(row["商品簡稱"]) || normalizeText(row["產品名稱"]);
+          if (!label || label === parentNode.label) continue;
+
+          if (!childMap.has(label)) {
+            childMap.set(label, {
+              id: `${parentNode.id}__${label}`,
+              parentId: parentNode.id,
+              label,
+              scope: buildScope(label, (candidate) => (
+                filterSalesRowsByProduct([candidate], parentNode.scope, false).length > 0
+                && (normalizeText(candidate["商品簡稱"]) || normalizeText(candidate["產品名稱"])) === label
+              )),
+            });
+          }
+        }
+        nodes.push(...childMap.values());
+      }
+      return nodes;
+    }
+
+    function rebuildNodeCache() {
+      state.allNodesCache = [...getStaticProductNodes(), ...buildDynamicProductNodes()];
+      state.childNodeMap = new Map();
+      for (const node of state.allNodesCache) {
+        if (!state.childNodeMap.has(node.parentId)) {
+          state.childNodeMap.set(node.parentId, []);
+        }
+        state.childNodeMap.get(node.parentId).push(node);
+      }
+    }
+
+    function getAllNodes() {
+      return state.allNodesCache;
+    }
+
+    function getNodeMap() {
+      return new Map(getAllNodes().map((node) => [node.id, node]));
+    }
+
+    function getChildNodes(parentId) {
+      return state.childNodeMap.get(parentId) || [];
+    }
+
+    function hasChildNodes(nodeId) {
+      return getChildNodes(nodeId).length > 0;
+    }
+
+    function getCurrentViewNodes() {
+      return getChildNodes(state.currentProductView);
+    }
+
+    function setProductView(viewId) {
+      state.currentProductView = viewId;
+      renderReport();
+    }
+
+    function updateDrillNav() {
+      $("drillBackButton").hidden = state.currentProductView === "root";
+      positionDrillBackButton();
+    }
+
+    function positionDrillBackButton() {
+      const wrap = $("drillBackWrap");
+      const button = $("drillBackButton");
+      if (button.hidden) return;
+      const toolbar = document.querySelector(".toolbar");
+      const toolbarRect = toolbar ? toolbar.getBoundingClientRect() : null;
+      const statRect = $("statItemSelect").getBoundingClientRect();
+      if (!toolbarRect || !statRect) return;
+      wrap.style.left = `${statRect.right - toolbarRect.left + 12}px`;
+      wrap.style.top = `${statRect.top - toolbarRect.top}px`;
+    }
+
+    function getFirstColumnHeader() {
+      if (state.currentProductView === "root") return "產品項目";
+      const currentNode = getNodeMap().get(state.currentProductView);
+      return currentNode?.columnHeader || "產品名稱";
+    }
+
+    function getSummaryNode(parentId) {
+      if (parentId === "root") {
+        return { id: "grand-total", label: "合計", scope: "全部", isSummary: true };
+      }
+      const parentNode = getNodeMap().get(parentId);
+      if (!parentNode) return null;
+      return { id: `${parentId}__summary`, label: "合計", scope: parentNode.scope, isSummary: true };
+    }
+
+    function getManualOrder(viewId) {
+      return ({
+        root: ["契約商品", "塔位商品", "墓園商品", "合計"],
+        "tower-total": ["等級商品", "真龍殿", "福田", "寶山", "嘉雲", "蓮園", "安泰", "寵物塔位", "合計"],
+        "tower-grade": ["D系列", "H系列", "Q系列", "合計"],
+        "grave-total": ["世紀陵園", "三芝陵園", "福田陵園", "富岡陵園", "安泰陵園", "合計"],
+      })[viewId] || null;
     }
 
     function filterSalesRowsByPeriod(yyyymm, channel) {
@@ -875,6 +1079,10 @@
 
     function filterSalesRowsByProduct(rows, product, forCount = false) {
       return rows.filter((row) => {
+        if (product && typeof product === "object" && typeof product.matcher === "function") {
+          if (forCount && !getCountGroup(row["產品類別"])) return false;
+          return product.matcher(row);
+        }
         const group = forCount ? getCountGroup(row["產品類別"]) : getSalesGroup(row["產品類別"]);
         if (!group) return false;
         if (product === "全部") return true;
@@ -1422,19 +1630,21 @@
       return months.flatMap((month) => filterSalesRowsByPeriod(month, context.channel));
     }
 
+    function getSelectedMetricDefinition(context, productScope = "全部") {
+      const registry = buildMetricRegistry({ ...context, product: productScope })[context.statistic.category];
+      return registry.find((metric) => metric.key === context.statistic.key) || registry[0];
+    }
+
     function renderWarnings(context) {
       const warnings = [];
-      if (["展業效率", "增員育留", "組織結構"].includes(context.metricCategory) && context.channel !== "營業處") {
+      if (context.statistic.category === "展業效率" && context.channel !== "營業處") {
         warnings.push("目前選到的人員/組織型指標，會使用業務組織檔計算。若通路不是「營業處」，部分指標可能只對營業處體系有完整覆蓋。");
       }
-      if (["展業效率", "組織結構"].includes(context.metricCategory) && context.channel === "營業處") {
+      if (context.statistic.category === "展業效率" && context.channel === "營業處") {
         const unresolvedOwnerCount = getUnresolvedOwnerCount(computeRowsForPeriods(context.currentPeriods, context));
         if (unresolvedOwnerCount > 0) {
           warnings.push(`目前條件下仍有 ${unresolvedOwnerCount} 筆業績找不到當月組織歸屬，涉及實動人數、產值、職級業績等組織型指標時，結果可能略有低估。`);
         }
-      }
-      if (context.metricCategory === "組織結構" && context.titles.length === 0) {
-        warnings.push("組織結構類至少要保留一個職級。");
       }
       const box = $("warningBox");
       if (warnings.length) {
@@ -1449,18 +1659,20 @@
     function renderReport() {
       if (!state.loaded) return;
       const context = getSelectedContext();
-      toggleTitleCard();
       renderWarnings(context);
+      updateDrillNav();
+      $("firstColumnHeader").textContent = getFirstColumnHeader();
 
-      const registry = buildMetricRegistry(context)[context.metricCategory];
+      const baseMetric = getSelectedMetricDefinition(context);
+      const nodes = [...getCurrentViewNodes(), getSummaryNode(state.currentProductView)].filter(Boolean);
       const current = { yyyymm: context.yyyymm, rows: computeRowsForPeriods(context.currentPeriods, context) };
       const prev = { yyyymm: context.prevYyyymm, rows: computeRowsForPeriods(context.prevPeriods, context) };
       const currentYtdRows = computeYtdRows(context.ytdMonths, context);
       const prevYtdRows = computeYtdRows(context.prevYtdMonths, context);
 
-      const rowsHtml = registry
-        .filter((metric) => !(metric.hidden && metric.hidden()))
-        .map((metric) => {
+      const rowsHtml = nodes
+        .map((node) => {
+          const metric = getSelectedMetricDefinition(context, node.scope);
           const currentValue = metric.value(current.rows, context.yyyymm);
           const prevValue = metric.value(prev.rows, context.prevYyyymm);
           const currentYtdValue = metric.ytdValue
@@ -1469,16 +1681,22 @@
           const prevYtdValue = metric.ytdValue
             ? metric.ytdValue(prevYtdRows, context.prevYtdMonths)
             : metric.value(prevYtdRows, context.prevYyyymm);
-          const label = metricLabel(metric.label, context);
-
           const monthDelta = currentValue === null || prevValue === null ? null : currentValue - prevValue;
           const monthDeltaRate = currentValue === null || prevValue === null ? null : safeDivide(currentValue - prevValue, prevValue);
           const ytdDelta = currentYtdValue === null || prevYtdValue === null ? null : currentYtdValue - prevYtdValue;
           const ytdDeltaRate = currentYtdValue === null || prevYtdValue === null ? null : safeDivide(currentYtdValue - prevYtdValue, prevYtdValue);
-
-          return `
+          const canDrill = hasChildNodes(node.id);
+          const labelHtml = canDrill
+            ? `<span class="metric-tip drill-link" data-drill-id="${node.id}" title="${metric.note}" style="font-weight:${node.isSummary ? 700 : 400}; display:inline-block;">${node.label}</span>`
+            : `<span class="metric-tip" title="${metric.note}" style="font-weight:${node.isSummary ? 700 : 400}; display:inline-block;">${node.label}</span>`;
+          return {
+            node,
+            monthDelta,
+            html: `
             <tr>
-              <td class="metric-name"><span class="metric-tip" title="${metric.note}">${label}</span></td>
+              <td class="metric-name">
+                ${labelHtml}
+              </td>
               <td class="num">${formatValue(currentValue, metric.type)}</td>
               <td class="num">${formatValue(prevValue, metric.type)}</td>
               <td>${formatDelta(monthDelta, metric.type)}</td>
@@ -1488,12 +1706,30 @@
               <td>${formatDelta(ytdDelta, metric.type)}</td>
               <td>${formatDelta(ytdDeltaRate, "percent")}</td>
             </tr>
-          `;
+          `,
+          };
         })
+        .sort((a, b) => {
+          if (a.node.isSummary !== b.node.isSummary) {
+            return a.node.isSummary ? 1 : -1;
+          }
+          const manualOrder = getManualOrder(state.currentProductView);
+          if (manualOrder) {
+            const leftIndex = manualOrder.indexOf(a.node.label);
+            const rightIndex = manualOrder.indexOf(b.node.label);
+            const normalizedLeft = leftIndex === -1 ? Number.MAX_SAFE_INTEGER : leftIndex;
+            const normalizedRight = rightIndex === -1 ? Number.MAX_SAFE_INTEGER : rightIndex;
+            if (normalizedLeft !== normalizedRight) return normalizedLeft - normalizedRight;
+          }
+          const left = a.monthDelta ?? Number.NEGATIVE_INFINITY;
+          const right = b.monthDelta ?? Number.NEGATIVE_INFINITY;
+          return right - left;
+        })
+        .map((row) => row.html)
         .join("");
 
       $("reportBody").innerHTML = rowsHtml || `<tr><td colspan="9" class="muted" style="padding:24px; text-align:left;">目前條件下沒有可顯示的指標。</td></tr>`;
-      $("footnote").innerHTML = "";
+      $("footnote").innerHTML = `統計項目：${context.statistic.label}。${baseMetric.note}`;
     }
 
     async function useSheetRows(salesRows, orgRows) {
@@ -1502,6 +1738,7 @@
       state.orgResolutionCache.clear();
       ensureResolutionCache();
       state.loaded = true;
+      rebuildNodeCache();
       buildFilterOptions();
       setStatus([
         "已載入資料。",
@@ -1527,23 +1764,21 @@
 
     $("yearSelect").addEventListener("change", () => {
       updateMonthOptions($("yearSelect").value);
+      state.currentProductView = "root";
       renderReport();
     });
-    $("titleFilterButton").addEventListener("click", (event) => {
-      event.stopPropagation();
-      $("titleMultiSelect").classList.toggle("open");
+    $("drillBackButton").addEventListener("click", () => {
+      const currentNode = getNodeMap().get(state.currentProductView);
+      setProductView(currentNode?.parentId || "root");
     });
-    $("titlePills").addEventListener("click", (event) => {
-      event.stopPropagation();
+    $("reportBody").addEventListener("click", (event) => {
+      const trigger = event.target.closest("[data-drill-id]");
+      if (!trigger) return;
+      setProductView(trigger.dataset.drillId);
     });
-    document.addEventListener("click", (event) => {
-      if (!$("titleMultiSelect").contains(event.target)) {
-        $("titleMultiSelect").classList.remove("open");
-      }
-    });
-    ["monthSelect", "channelSelect", "productSelect", "metricCategorySelect"].forEach((id) => {
+    window.addEventListener("resize", positionDrillBackButton);
+    ["monthSelect", "channelSelect", "statItemSelect"].forEach((id) => {
       $(id).addEventListener("change", renderReport);
-      $(id).addEventListener("change", toggleTitleCard);
     });
     handleAutoLoad();
   </script>
