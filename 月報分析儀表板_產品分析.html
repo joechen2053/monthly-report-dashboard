@@ -1,0 +1,1934 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>營運數據智慧分析儀表板 | Monthly Report Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;800&family=Noto+Serif+TC:wght@700;900&display=swap" rel="stylesheet">
+  <script src="https://www.gstatic.com/charts/loader.js"></script>
+  <style>
+    :root {
+      --bg: #f5f1ea;
+      --paper: #fffdf9;
+      --ink: #2a2a2a;
+      --muted: #766c61;
+      --line: #d9d0c3;
+      --accent: #9a1d2e;
+      --accent-dark: #7d1625;
+      --accent-soft: #f8ecef;
+      --teal: #9a1d2e;
+      --gold: #b8812c;
+      --shadow: 0 12px 30px rgba(76, 45, 33, 0.08);
+      --radius: 18px;
+      --hover-row: #f7efe1;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      height: 100%;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Noto Sans TC", sans-serif;
+      font-size: 13px;
+      color: var(--ink);
+      background: linear-gradient(180deg, #fbf8f2 0%, var(--bg) 100%);
+      overflow: hidden;
+    }
+
+    .shell {
+      max-width: 1520px;
+      margin: 0 auto;
+      height: 100%;
+      min-height: 100%;
+      padding: 14px 18px 14px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .hero {
+      padding: 12px 16px 14px;
+      margin-bottom: 8px;
+      flex: 0 0 auto;
+    }
+
+    .hero-bar {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 18px;
+      flex-wrap: wrap;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(16px, 2.2vw, 26px);
+      line-height: 1.05;
+      font-weight: 800;
+      letter-spacing: 0.02em;
+      color: #3f3f3f;
+    }
+
+    .title-zh {
+      font-family: "Noto Serif TC", "PingFang TC", "Microsoft JhengHei", serif;
+    }
+
+    .title-en {
+      font-family: Arial, Helvetica, sans-serif;
+      font-weight: 600;
+    }
+
+    .page-tabs {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex: 0 0 auto;
+      padding-top: 4px;
+    }
+
+    .page-tab {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 132px;
+      padding: 12px 18px;
+      border: 1px solid #ddd6ca;
+      background: transparent;
+      color: var(--ink);
+      text-decoration: none;
+      font-size: 15px;
+      font-weight: 800;
+      line-height: 1;
+      transition: background-color 0.2s ease, border-color 0.2s ease;
+    }
+
+    .page-tab:hover {
+      background: #f5f1ea;
+    }
+
+    .page-tab.active {
+      background: #e5e5e5;
+      border-color: #e5e5e5;
+    }
+
+    .report {
+      background: var(--paper);
+      border: 1px solid #e3d9cc;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      flex: 1 1 auto;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .section-title {
+      margin: 0 0 12px;
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      font-weight: 800;
+    }
+
+    .stack {
+      display: grid;
+      gap: 14px;
+    }
+
+    .card {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 12px 14px;
+      background: #fffdfa;
+    }
+
+    .card strong {
+      display: block;
+      font-size: 15px;
+      margin-bottom: 6px;
+    }
+
+    .card p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.65;
+    }
+
+    label.file {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--ink);
+      white-space: nowrap;
+    }
+
+    select {
+      width: 122px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #fff;
+      padding: 8px 36px 8px 10px;
+      font-size: 15px;
+      line-height: 1.3;
+      color: var(--ink);
+    }
+
+    .status {
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.65;
+      white-space: pre-line;
+    }
+
+    .report {
+      padding: 14px 16px 12px;
+    }
+
+    .toolbar {
+      display: grid;
+      gap: 8px;
+      margin-bottom: 10px;
+      flex: 0 0 auto;
+      position: relative;
+    }
+
+    .unit-label {
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .filter-unit {
+      margin-left: auto;
+      align-self: center;
+      text-align: right;
+    }
+
+    .filter-grid {
+      display: flex;
+      flex-wrap: nowrap;
+      gap: 10px 12px;
+      align-items: center;
+    }
+
+    .filter-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex: 0 0 auto;
+    }
+
+    .filter-item.compact select {
+      width: 82px;
+    }
+
+    .filter-item.wide select {
+      width: 126px;
+    }
+
+    .filter-item.channel select {
+      width: 118px;
+    }
+
+    .filter-item.metric select {
+      width: 118px;
+    }
+
+    .title-filter {
+      display: none;
+      position: relative;
+      flex: 0 0 auto;
+    }
+
+    .title-filter.show {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .multi-select {
+      position: relative;
+    }
+
+    .multi-select-button {
+      width: 122px;
+      min-width: 122px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #fff;
+      color: var(--ink);
+      padding: 8px 32px 8px 10px;
+      font: inherit;
+      font-size: 15px;
+      text-align: left;
+      box-shadow: none;
+      cursor: pointer;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .multi-select-menu {
+      display: none;
+      position: absolute;
+      top: calc(100% + 6px);
+      left: 0;
+      min-width: 220px;
+      padding: 8px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #fff;
+      box-shadow: 0 14px 28px rgba(23, 32, 51, 0.14);
+      z-index: 20;
+    }
+
+    .multi-select.open .multi-select-menu {
+      display: block;
+    }
+
+    .multi-select-option {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 10px;
+      border-radius: 8px;
+      font-size: 14px;
+      color: var(--ink);
+      cursor: pointer;
+    }
+
+    .multi-select-option:hover {
+      background: #f3f7fc;
+    }
+
+    .multi-select-option input {
+      margin: 0;
+    }
+
+    .warning {
+      display: none;
+      margin-top: 6px;
+      color: #8a5d16;
+      line-height: 1.6;
+      font-size: 12px;
+      flex: 0 0 auto;
+    }
+
+    .warning.show {
+      display: block;
+    }
+
+    .table-wrap {
+      flex: 1 1 auto;
+      min-height: 0;
+      overflow-x: auto;
+      overflow-y: auto;
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      background: #fff;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 980px;
+    }
+
+    thead th {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      background: var(--accent);
+      color: #fffdf8;
+      font-size: 16px;
+      letter-spacing: 0.04em;
+      text-align: right;
+      padding: 12px 10px;
+      border-bottom: 1px solid #8a1a29;
+      box-shadow: 0 1px 0 rgba(76, 45, 33, 0.08);
+    }
+
+    thead th:first-child {
+      text-align: left;
+    }
+
+    tbody td {
+      padding: 9px 10px;
+      border-bottom: 1px solid #e3d9cc;
+      font-size: 16px;
+      vertical-align: top;
+      text-align: right;
+      background: #fffdf9;
+    }
+
+    tbody tr:nth-child(even) {
+      background: #fcf8f1;
+    }
+
+    tbody tr:nth-child(even) td {
+      background: #fcf8f1;
+    }
+
+    tbody tr:hover td {
+      background: var(--hover-row);
+    }
+
+	    tbody td.metric-name {
+	      font-weight: 400;
+	      min-width: 260px;
+	      text-align: left;
+	    }
+
+	    tbody tr.summary-row td {
+	      font-weight: 700;
+	    }
+
+    .metric-tip {
+      cursor: help;
+    }
+
+    .drill-link {
+      color: inherit;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    .ghost-filter {
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    #drillBackWrap {
+      position: absolute;
+      z-index: 1;
+    }
+
+    #drillBackWrap .multi-select {
+      position: relative;
+    }
+
+    #drillBackWrap .multi-select-button {
+      width: 34px;
+      min-width: 34px;
+      height: 36px;
+      padding: 0;
+      text-align: center;
+      border-radius: 8px;
+      border-color: #7fd34e;
+      background:
+        #fff
+        center / 18px 18px
+        no-repeat
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%2300a325' d='M12 4a8 8 0 1 0 7.2 11.5h-3.1A5.5 5.5 0 1 1 12 6.5V10l6-4-6-4z'/%3E%3C/svg%3E");
+      font-size: 0;
+    }
+
+    #drillBackWrap .multi-select-button[hidden] {
+      display: none;
+    }
+
+    .num {
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+
+    .muted {
+      color: var(--muted);
+    }
+
+    .good { color: #0b7a51; }
+    .bad { color: #b0342f; }
+
+    .footnote {
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.8;
+      flex: 0 0 auto;
+    }
+
+    @media (max-width: 1100px) {
+      .filter-grid { gap: 10px 14px; }
+    }
+
+    @media (max-width: 640px) {
+      body {
+        overflow: auto;
+      }
+      .shell { padding: 14px 10px 30px; }
+      .report { border-radius: 20px; }
+      .hero-bar {
+        align-items: stretch;
+      }
+      .page-tabs {
+        width: 100%;
+        justify-content: flex-end;
+        flex-wrap: wrap;
+        gap: 10px;
+        padding-top: 0;
+      }
+      .page-tab {
+        min-width: 0;
+        padding: 10px 14px;
+      }
+      .filter-grid, .filter-item, .title-filter.show {
+        display: grid;
+        justify-items: stretch;
+      }
+      .filter-grid {
+        flex-wrap: wrap;
+      }
+      label.file {
+        justify-content: space-between;
+      }
+      select, .multi-select-button {
+        width: 100%;
+        min-width: 0;
+      }
+      .table-wrap {
+        max-height: none;
+      }
+      .filter-unit {
+        margin-left: 0;
+        justify-self: end;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <section class="hero">
+      <div class="hero-bar">
+        <h1><span class="title-zh">營運數據智慧分析儀表板 | </span><span class="title-en">Monthly Report Dashboard</span></h1>
+        <nav class="page-tabs" aria-label="分析頁面切換">
+          <a class="page-tab" href="月報分析儀表板_數據總覽.html">數據總覽</a>
+          <a class="page-tab active" href="月報分析儀表板_產品分析.html" aria-current="page">產品分析</a>
+          <a class="page-tab" href="月報分析儀表板_通路分析.html">通路分析</a>
+        </nav>
+      </div>
+    </section>
+
+    <main class="report">
+      <div class="toolbar">
+        <div class="status" id="statusText" hidden>尚未載入資料。</div>
+        <div class="filter-grid">
+          <div class="filter-item compact">
+            <label class="file" for="yearSelect">年度</label>
+            <select id="yearSelect" disabled></select>
+          </div>
+          <div class="filter-item compact">
+            <label class="file" for="monthSelect">月份</label>
+            <select id="monthSelect" disabled></select>
+          </div>
+          <div class="filter-item wide channel">
+            <label class="file" for="channelSelect">通路</label>
+            <select id="channelSelect" disabled></select>
+          </div>
+          <div class="filter-item wide metric">
+            <label class="file" for="statItemSelect">統計項目</label>
+            <select id="statItemSelect" disabled></select>
+          </div>
+          <div class="filter-item wide ghost-filter" aria-hidden="true">
+            <label class="file" for="ghostProductSelect">產品類別</label>
+            <select id="ghostProductSelect" disabled tabindex="-1"></select>
+          </div>
+          <div class="title-filter show" id="drillBackWrap">
+            <div class="multi-select">
+              <button type="button" class="multi-select-button" id="drillBackButton" hidden aria-label="返回上一層">&#x2039;</button>
+            </div>
+          </div>
+          <div class="unit-label filter-unit">業績單位：萬元</div>
+        </div>
+      </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+	            <tr class="${node.isSummary ? "summary-row" : ""}">
+                <th id="firstColumnHeader">產品項目</th>
+                <th>今年單月</th>
+                <th>去年單月</th>
+                <th>單月增減額</th>
+                <th>單月增減率</th>
+                <th>今年累計</th>
+                <th>去年累計</th>
+                <th>累計增減額</th>
+                <th>累計增減率</th>
+              </tr>
+            </thead>
+            <tbody id="reportBody">
+              <tr><td colspan="9" class="muted" style="padding: 24px; text-align: left;">資料載入中。</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="warning" id="warningBox"></div>
+
+        <div class="footnote" id="footnote"></div>
+    </main>
+  </div>
+
+  <script>
+    const SALES_SHEET = {
+	      spreadsheetId: "15nwY9wvGJeq2iE30QZQCR7RkBNE8b_oUdWT5HIuDBsk",
+	      cacheKey: "sales-sheet",
+      sheetName: "來源業績",
+    };
+    const ORG_SHEET = {
+	      spreadsheetId: "1_8HFJtMPU1t-yKg5pCaFw8PvCAhhLtCdomkcXYoDbug",
+	      cacheKey: "org-sheet",
+      sheetName: "工作表1",
+    };
+
+    const STATISTIC_OPTIONS = [
+      { id: "產品銷售__revenue", category: "產品銷售", key: "revenue", label: "業績" },
+      { id: "產品銷售__dealCount", category: "產品銷售", key: "dealCount", label: "件數" },
+      { id: "產品銷售__mixRatio", category: "產品銷售", key: "mixRatio", label: "業績佔率" },
+      { id: "產品銷售__avgUnitPrice", category: "產品銷售", key: "avgUnitPrice", label: "平均單價" },
+      { id: "產品銷售__bigOrderRevenueRatio", category: "產品銷售", key: "bigOrderRevenueRatio", label: "大單業績佔率" },
+      { id: "產品銷售__bigOrderCountRatio", category: "產品銷售", key: "bigOrderCountRatio", label: "大單件數佔率" },
+      { id: "展業效率__productiveHeadcount", category: "展業效率", key: "productiveHeadcount", label: "實動人數" },
+      { id: "展業效率__productiveRate", category: "展業效率", key: "productiveRate", label: "實動率" },
+      { id: "展業效率__revenuePerHead", category: "展業效率", key: "revenuePerHead", label: "產值" },
+      { id: "展業效率__customerCount", category: "展業效率", key: "customerCount", label: "客戶人數" },
+      { id: "展業效率__avgRevenuePerCustomer", category: "展業效率", key: "avgRevenuePerCustomer", label: "客均單價" },
+      { id: "展業效率__avgDealsPerCustomer", category: "展業效率", key: "avgDealsPerCustomer", label: "客均件數" },
+      { id: "展業效率__customersPerHead", category: "展業效率", key: "customersPerHead", label: "人均客數" },
+      { id: "付款方式__installmentRevenue", category: "付款方式", key: "installmentRevenue", label: "分期件業績" },
+      { id: "付款方式__installmentRatio", category: "付款方式", key: "installmentRatio", label: "分期件佔率" },
+      { id: "付款方式__cashRevenue", category: "付款方式", key: "cashRevenue", label: "現金件業績" },
+      { id: "付款方式__cashRatio", category: "付款方式", key: "cashRatio", label: "現金件佔率" },
+      { id: "付款方式__selfPurchaseRatio", category: "付款方式", key: "selfPurchaseRatio", label: "自購件占比" },
+    ];
+    const channelOptions = [
+      { value: "全部", label: "全部" },
+      { value: "營業處", label: "營業處" },
+      { value: "喪葬通路-宇錡", label: "喪葬宇錡" },
+      { value: "喪葬通路-龍巖", label: "喪葬龍巖" },
+      { value: "多元行銷", label: "多元行銷" },
+      { value: "電銷", label: "電銷" },
+      { value: "內勤", label: "內勤" },
+    ];
+	    const googleChartsReady = new Promise((resolve) => {
+	      google.charts.load("current", { packages: ["table"] });
+	      google.charts.setOnLoadCallback(resolve);
+	    });
+		    const SHEET_CACHE_DB_NAME = "monthly-report-dashboard-cache";
+		    const SHEET_CACHE_STORE_NAME = "sheetRows";
+		    let sheetCacheDbPromise = null;
+
+    const state = {
+      salesRows: [],
+      orgRows: [],
+      orgMonthIndex: new Map(),
+      orgResolutionCache: new Map(),
+      allNodesCache: [],
+      childNodeMap: new Map(),
+      loaded: false,
+      currentProductView: "root",
+    };
+
+    const $ = (id) => document.getElementById(id);
+
+    function normalizeText(value) {
+      return String(value ?? "").trim();
+    }
+
+    function parseNumber(value) {
+      if (value === null || value === undefined || value === "") return 0;
+      const text = String(value).replace(/,/g, "").trim();
+      const num = Number(text);
+      return Number.isFinite(num) ? num : 0;
+    }
+
+    function isTruthyY(value) {
+      return normalizeText(value).toUpperCase() === "Y";
+    }
+
+    function getSalesGroup(rawCategory) {
+      const value = normalizeText(rawCategory);
+      if (value === "契約" || value === "契約憑證") return "契約";
+      if (value === "塔位" || value === "塔位憑證" || value === "寵物塔位") return "塔位";
+      if (value === "墓園") return "墓園";
+      return null;
+    }
+
+    function getCountGroup(rawCategory) {
+      const value = normalizeText(rawCategory);
+      if (value === "契約" || value === "塔位" || value === "墓園" || value === "寵物塔位") return value === "寵物塔位" ? "塔位" : value;
+      return null;
+    }
+
+    function getTitleGroup(title) {
+      const value = normalizeText(title);
+      if (["協理", "資深協理", "專案協理"].includes(value)) return "協理";
+      if (["處長", "副處長", "經理", "主任"].includes(value)) return value;
+      return value;
+    }
+
+    function isSupervisorTitle(title) {
+      return ["處長", "副處長", "資深協理", "協理", "專案協理", "經理", "主任"].includes(normalizeText(title));
+    }
+
+    function formatMinguoMonth(year, month) {
+      return `${year}${String(month).padStart(2, "0")}`;
+    }
+
+    function getPrevYearMonth(yyyymm) {
+      const year = Number(String(yyyymm).slice(0, 3));
+      const month = String(yyyymm).slice(3).padStart(2, "0");
+      return `${year - 1}${month}`;
+    }
+
+    function getYtdMonths(yyyymm) {
+      const year = Number(String(yyyymm).slice(0, 3));
+      const month = Number(String(yyyymm).slice(3));
+      return Array.from({ length: month }, (_, idx) => formatMinguoMonth(year, idx + 1));
+    }
+
+    function getPeriodLabel(yyyymm) {
+      return `${String(yyyymm).slice(0, 3)} 年 ${String(yyyymm).slice(3).padStart(2, "0")} 月`;
+    }
+
+    function isOrgRowActive(row) {
+      const snapshotMonth = normalizeText(row["年月"]);
+      const leaveDate = normalizeText(row["離職年月日"]);
+      if (!snapshotMonth) return false;
+      if (!leaveDate) return true;
+      return leaveDate.slice(0, 5) >= snapshotMonth;
+    }
+
+    function buildResolutionForMonth(rows) {
+      const byEmployee = new Map();
+      const byNode = new Map();
+
+      for (const row of rows) {
+        const employeeId = normalizeText(row["業務身份證字號"]);
+        const officeName = normalizeText(row["營業處名稱"]);
+        const gPosition = normalizeText(row["g_position"]);
+        if (!employeeId || !officeName || !gPosition) continue;
+        if (!byEmployee.has(employeeId)) byEmployee.set(employeeId, row);
+        const nodeKey = `${officeName}__${gPosition}`;
+        if (!byNode.has(nodeKey)) byNode.set(nodeKey, []);
+        byNode.get(nodeKey).push(row);
+      }
+
+      function supervisorPriority(title) {
+        return ({
+          "主任": 1,
+          "經理": 2,
+          "專案協理": 3,
+          "協理": 4,
+          "資深協理": 5,
+          "副處長": 6,
+          "處長": 7,
+        })[normalizeText(title)] ?? 99;
+      }
+
+      function chooseSupervisor(candidates) {
+        return [...candidates]
+          .filter((row) => isSupervisorTitle(row["職稱"]))
+          .sort((a, b) => supervisorPriority(a["職稱"]) - supervisorPriority(b["職稱"]))[0] || null;
+      }
+
+      const resolved = new Map();
+      for (const [employeeId, row] of byEmployee.entries()) {
+        const title = normalizeText(row["職稱"]);
+        if (title !== "業務代表") {
+          resolved.set(employeeId, row);
+          continue;
+        }
+        const officeName = normalizeText(row["營業處名稱"]);
+        const gPosition = normalizeText(row["g_position"]);
+        let owner = null;
+        for (let len = gPosition.length; len >= 2; len -= 2) {
+          const ancestor = gPosition.slice(0, len);
+          const nodeRows = byNode.get(`${officeName}__${ancestor}`) || [];
+          owner = chooseSupervisor(nodeRows.filter((candidate) => normalizeText(candidate["業務身份證字號"]) !== employeeId));
+          if (owner) break;
+        }
+        resolved.set(employeeId, owner || row);
+      }
+
+      return { byEmployee, resolved };
+    }
+
+    function ensureResolutionCache() {
+      if (state.orgResolutionCache.size) return;
+      const monthGroups = new Map();
+      for (const row of state.orgRows) {
+        const month = normalizeText(row["年月"]);
+        if (!month) continue;
+        if (!monthGroups.has(month)) monthGroups.set(month, []);
+        monthGroups.get(month).push(row);
+      }
+      for (const [month, rows] of monthGroups.entries()) {
+        state.orgResolutionCache.set(month, buildResolutionForMonth(rows));
+      }
+    }
+
+	    function buildSheetQueryUrl({ spreadsheetId, sheetName }) {
+	      const url = new URL(`https://docs.google.com/spreadsheets/d/${spreadsheetId}/gviz/tq`);
+	      url.searchParams.set("sheet", sheetName);
+	      return url.toString();
+	    }
+
+	    function getSheetCacheKey({ spreadsheetId, sheetName, cacheKey }) {
+	      return cacheKey || `${spreadsheetId}::${sheetName}`;
+	    }
+
+	    function openSheetCacheDb() {
+	      if (sheetCacheDbPromise) return sheetCacheDbPromise;
+	      if (typeof indexedDB === "undefined") {
+	        sheetCacheDbPromise = Promise.resolve(null);
+	        return sheetCacheDbPromise;
+	      }
+	      sheetCacheDbPromise = new Promise((resolve) => {
+	        const request = indexedDB.open(SHEET_CACHE_DB_NAME, 1);
+	        request.onupgradeneeded = () => {
+	          const db = request.result;
+	          if (!db.objectStoreNames.contains(SHEET_CACHE_STORE_NAME)) {
+	            db.createObjectStore(SHEET_CACHE_STORE_NAME, { keyPath: "key" });
+	          }
+	        };
+	        request.onsuccess = () => resolve(request.result);
+	        request.onerror = () => {
+	          console.warn("[sheet-cache] open failed", request.error?.message || request.error);
+	          resolve(null);
+	        };
+	      });
+	      return sheetCacheDbPromise;
+	    }
+
+	    async function readSheetRowsCache(sheetConfig) {
+	      const db = await openSheetCacheDb();
+	      if (!db) return null;
+	      const key = getSheetCacheKey(sheetConfig);
+	      return new Promise((resolve) => {
+	        const transaction = db.transaction(SHEET_CACHE_STORE_NAME, "readonly");
+	        const store = transaction.objectStore(SHEET_CACHE_STORE_NAME);
+	        const request = store.get(key);
+	        request.onsuccess = () => {
+	          const rows = Array.isArray(request.result?.rows) ? request.result.rows : null;
+	          if (rows) {
+	            console.info("[sheet-cache] hit", key, rows.length);
+	          } else {
+	            console.info("[sheet-cache] miss", key);
+	          }
+	          resolve(rows);
+	        };
+	        request.onerror = () => {
+	          console.warn("[sheet-cache] read failed", key, request.error?.message || request.error);
+	          resolve(null);
+	        };
+	      });
+	    }
+
+	    async function writeSheetRowsCache(sheetConfig, rows) {
+	      const db = await openSheetCacheDb();
+	      if (!db) return;
+	      const key = getSheetCacheKey(sheetConfig);
+	      await new Promise((resolve) => {
+	        const transaction = db.transaction(SHEET_CACHE_STORE_NAME, "readwrite");
+	        const store = transaction.objectStore(SHEET_CACHE_STORE_NAME);
+	        const request = store.put({
+	          key,
+	          cachedAt: Date.now(),
+	          rows,
+	        });
+	        request.onsuccess = () => {
+	          console.info("[sheet-cache] stored", key, rows.length);
+	          resolve();
+	        };
+	        request.onerror = () => {
+	          console.warn("[sheet-cache] write failed", key, request.error?.message || request.error);
+	          resolve();
+	        };
+	      });
+	    }
+
+    function toSpreadsheetColumnLabel(index) {
+      let value = index + 1;
+      let label = "";
+      while (value > 0) {
+        const remainder = (value - 1) % 26;
+        label = String.fromCharCode(65 + remainder) + label;
+        value = Math.floor((value - 1) / 26);
+      }
+      return label;
+    }
+
+    function dataTableToObjects(dataTable) {
+      const initialHeaders = Array.from({ length: dataTable.getNumberOfColumns() }, (_, colIndex) => {
+        return normalizeText(dataTable.getColumnLabel(colIndex)) || normalizeText(dataTable.getColumnId(colIndex)) || `COL_${colIndex + 1}`;
+      });
+      const shouldUseFirstRowAsHeader = initialHeaders.every((header, colIndex) => {
+        const generic = header === toSpreadsheetColumnLabel(colIndex) || header === `COL_${colIndex + 1}`;
+        return generic;
+      }) && dataTable.getNumberOfRows() > 0;
+
+      const headers = shouldUseFirstRowAsHeader
+        ? Array.from({ length: dataTable.getNumberOfColumns() }, (_, colIndex) => {
+            return normalizeText(dataTable.getFormattedValue(0, colIndex)) || `COL_${colIndex + 1}`;
+          })
+        : initialHeaders;
+      const startRowIndex = shouldUseFirstRowAsHeader ? 1 : 0;
+
+      return Array.from({ length: Math.max(0, dataTable.getNumberOfRows() - startRowIndex) }, (_, offset) => {
+        const rowIndex = offset + startRowIndex;
+        const row = {};
+        headers.forEach((header, colIndex) => {
+          const formatted = dataTable.getFormattedValue(rowIndex, colIndex);
+          const raw = dataTable.getValue(rowIndex, colIndex);
+          row[header] = formatted ?? raw ?? "";
+        });
+        return row;
+      });
+    }
+
+	    async function fetchSheetRows(sheetConfig) {
+		      const cachedRows = await readSheetRowsCache(sheetConfig);
+	      if (cachedRows) return cachedRows;
+	      await googleChartsReady;
+      return new Promise((resolve, reject) => {
+        const query = new google.visualization.Query(buildSheetQueryUrl(sheetConfig));
+	        query.send(async (response) => {
+          if (response.isError()) {
+            reject(new Error(response.getMessage() || "Google Sheets 讀取失敗"));
+            return;
+          }
+	          const rows = dataTableToObjects(response.getDataTable());
+		          await writeSheetRowsCache(sheetConfig, rows);
+	          resolve(rows);
+        });
+      });
+    }
+
+    function setStatus(text) {
+      $("statusText").textContent = text;
+    }
+
+    function getCurrentMinguoYear() {
+      return String(new Date().getFullYear() - 1911);
+    }
+
+    function getAvailableYears() {
+      return [...new Set(state.salesRows.map((row) => normalizeText(row["年"])).filter(Boolean))].sort();
+    }
+
+    function getLatestOrgPeriod() {
+      return [...new Set(state.orgRows.map((row) => normalizeText(row["年月"])).filter(Boolean))].sort().at(-1) || "";
+    }
+
+    function getLatestMonthForYear(year) {
+      const months = [...new Set(
+        state.salesRows
+          .filter((row) => normalizeText(row["年"]) === year)
+          .map((row) => String(parseNumber(row["月"])).padStart(2, "0"))
+          .filter((month) => month !== "00")
+      )].sort();
+      return months.at(-1) || "12";
+    }
+
+    function getLatestOrgMonthForYear(year) {
+      const months = [...new Set(
+        state.orgRows
+          .filter((row) => normalizeText(row["年月"]).startsWith(year))
+          .map((row) => normalizeText(row["年月"]).slice(3, 5))
+          .filter(Boolean)
+      )].sort();
+      return months.at(-1) || getLatestMonthForYear(year);
+    }
+
+    function getAvailableMonthsForYear(year) {
+      return Array.from({ length: 12 }, (_, idx) => String(idx + 1).padStart(2, "0"));
+    }
+
+    function updateMonthOptions(selectedYear, preferredMonth = null) {
+      const months = getAvailableMonthsForYear(selectedYear);
+      const fallbackMonth = selectedYear === "全部"
+        ? getLatestOrgMonthForYear(getAvailableYears().at(-1))
+        : getLatestOrgMonthForYear(selectedYear);
+      fillSelect($("monthSelect"), months, preferredMonth || fallbackMonth);
+    }
+
+    function buildFilterOptions() {
+      const years = getAvailableYears();
+      const availableChannels = new Set(state.salesRows.map((row) => normalizeText(row["通路類別"])).filter(Boolean));
+      const channels = channelOptions.filter((channel) => channel.value === "全部" || availableChannels.has(channel.value));
+      const defaultYear = years.includes(getCurrentMinguoYear()) ? getCurrentMinguoYear() : years.at(-1);
+      const latestOrgPeriod = getLatestOrgPeriod();
+      const defaultMonth = latestOrgPeriod ? latestOrgPeriod.slice(3, 5) : getLatestOrgMonthForYear(defaultYear);
+      const defaultChannel = channels.some((channel) => channel.value === "營業處") ? "營業處" : channels[0]?.value;
+
+      fillSelect($("yearSelect"), ["全部", ...years], defaultYear);
+      updateMonthOptions(defaultYear, defaultMonth);
+      fillSelect($("channelSelect"), channels, defaultChannel);
+      fillSelect($("statItemSelect"), STATISTIC_OPTIONS.map((item) => ({
+        value: item.id,
+        label: item.label,
+      })), STATISTIC_OPTIONS[0].id);
+
+      ["yearSelect", "monthSelect", "channelSelect", "statItemSelect"].forEach((id) => {
+        $(id).disabled = false;
+      });
+    }
+
+    function fillSelect(el, values, selectedValue) {
+      el.innerHTML = values.map((value) => {
+        if (typeof value === "object") {
+          return `<option value="${value.value}">${value.label}</option>`;
+        }
+        return `<option value="${value}">${value}</option>`;
+      }).join("");
+      const normalizedValues = values.map((value) => typeof value === "object" ? value.value : value);
+      if (selectedValue && normalizedValues.includes(selectedValue)) {
+        el.value = selectedValue;
+      }
+    }
+
+    function getSelectedStatisticOption() {
+      return STATISTIC_OPTIONS.find((item) => item.id === $("statItemSelect").value) || STATISTIC_OPTIONS[0];
+    }
+
+    function getSelectedContext() {
+      const selectedYear = $("yearSelect").value;
+      const selectedMonth = $("monthSelect").value;
+      const availableYears = getAvailableYears();
+      const year = selectedYear === "全部" ? availableYears.at(-1) : selectedYear;
+      const prevYear = String(Number(year) - 1).padStart(3, "0");
+      const month = selectedMonth || getLatestMonthForYear(year);
+      const currentPeriods = [formatMinguoMonth(year, Number(month))];
+      const prevPeriods = [formatMinguoMonth(prevYear, Number(month))];
+      const yyyymm = currentPeriods.at(-1) || `${year}${month}`;
+      return {
+        selectedYear,
+        selectedMonth,
+        year,
+        month,
+        yyyymm,
+        prevYyyymm: prevPeriods.at(-1) || getPrevYearMonth(yyyymm),
+        currentPeriods,
+        prevPeriods,
+        ytdMonths: getYtdMonths(yyyymm),
+        prevYtdMonths: getYtdMonths(getPrevYearMonth(yyyymm)),
+        channel: $("channelSelect").value,
+        statistic: getSelectedStatisticOption(),
+      };
+    }
+
+    function buildScope(name, matcher) {
+      return { name, matcher };
+    }
+
+    function inferTowerGroup(row) {
+      const category = normalizeText(row["產品類別"]);
+      if (category === "寵物塔位") return "寵物塔位";
+
+      const tower = normalizeText(row["陵園塔別"]);
+      if (["真龍殿", "福田", "寶山", "嘉雲", "蓮園", "安泰"].includes(tower)) return tower;
+      if (["D系列", "H系列", "Q系列"].includes(tower)) return "等級商品";
+
+      const text = `${normalizeText(row["商品簡稱"])} ${normalizeText(row["產品名稱"])}`;
+      if (/真龍殿|寶藏殿|寶藏苑|雨珠|星辰|光之城|光之瀧|大清淨|晶典|繽紛|璽悅/.test(text)) return "真龍殿";
+      if (/福田|菩蓮|菩祥|琉金|晶華|傳世|萬福|藏金閣|永祿園|晴山園|聚賢園|自在軒|佛日|百合天堂|萬佛|福悅|詩雨樓/.test(text)) return "福田";
+      if (/寶山|寶祥|寶祐|寶蓮|寶恩|寶璽|桃花源|櫻悅|寶地樓|寶安廳|寶德廳|寶福廳|寶聚廳|寶祠廳|祥雲/.test(text)) return "寶山";
+      if (/嘉雲|嘉悅|龍祥|吉樂|天恩|牡丹|蓮華|水鑽|佛像|神佛大道|傳家|1H|5樓|6樓|7樓|8樓|B1/.test(text)) return "嘉雲";
+      if (/蓮園|晨光樓/.test(text)) return "蓮園";
+      if (/安泰/.test(text)) return "安泰";
+      if (/D系列|H系列|Q系列|等級/.test(text)) return "等級商品";
+      return null;
+    }
+
+    function inferCemeteryGroup(row) {
+      const field = normalizeText(row["陵園塔別"]);
+      if (field === "白沙灣") return "三芝陵園";
+      if (field === "世紀陵園") return "世紀陵園";
+      if (field === "福田") return "福田陵園";
+      if (field === "富岡") return "富岡陵園";
+      if (field === "安泰") return "安泰陵園";
+
+      const text = `${normalizeText(row["商品簡稱"])} ${normalizeText(row["產品名稱"])}`;
+      if (/白沙灣|日光庭園|印象|竹林|忘憂|美麗|荷風|造像|龍泰陵|霞山/.test(text)) return "三芝陵園";
+      if (/禾光/.test(text)) return "世紀陵園";
+      if (/聚賢園|晴山園/.test(text)) return "福田陵園";
+      if (/富岡|富綠|懷親園|沂園|天境/.test(text)) return "富岡陵園";
+      if (/安泰|朝福園|朝霞園|福壽園|美樂地/.test(text)) return "安泰陵園";
+      return null;
+    }
+
+    function inferSeriesGroup(row) {
+      const tower = normalizeText(row["陵園塔別"]);
+      if (tower === "D系列") return "D";
+      if (tower === "H系列") return "H";
+      if (tower === "Q系列") return "Q";
+
+      const text = `${normalizeText(row["商品簡稱"])} ${normalizeText(row["產品名稱"])}`;
+      const match = text.match(/等級：([DHQ])-/);
+      return match ? match[1] : null;
+    }
+
+    function getStaticProductNodes() {
+      return [
+        { id: "contract-total", parentId: "root", label: "契約商品", columnHeader: "產品名稱", scope: buildScope("契約商品", (row) => ["契約", "契約憑證"].includes(normalizeText(row["產品類別"]))) },
+        { id: "contract-rf", parentId: "contract-total", label: "圓融", scope: buildScope("圓融", (row) => normalizeText(row["產品類別"]) === "契約" && normalizeText(row["商品簡稱"]) === "圓融") },
+        { id: "contract-fh", parentId: "contract-total", label: "風華", scope: buildScope("風華", (row) => normalizeText(row["產品類別"]) === "契約" && normalizeText(row["商品簡稱"]) === "風華") },
+        { id: "contract-ya", parentId: "contract-total", label: "圓愛", scope: buildScope("圓愛", (row) => normalizeText(row["產品類別"]) === "契約" && normalizeText(row["商品簡稱"]) === "圓愛") },
+        { id: "contract-other", parentId: "contract-total", label: "其他契約", columnHeader: "產品名稱", childMode: "product", scope: buildScope("其他契約", (row) => normalizeText(row["產品類別"]) === "契約" && !["圓融", "風華", "圓愛"].includes(normalizeText(row["商品簡稱"]))) },
+        { id: "contract-voucher", parentId: "contract-total", label: "契約憑證", columnHeader: "產品名稱", childMode: "product", scope: buildScope("契約憑證", (row) => normalizeText(row["產品類別"]) === "契約憑證") },
+        { id: "tower-total", parentId: "root", label: "塔位商品", columnHeader: "塔別", scope: buildScope("塔位商品", (row) => ["塔位", "塔位憑證", "寵物塔位"].includes(normalizeText(row["產品類別"]))) },
+        { id: "tower-zld", parentId: "tower-total", label: "真龍殿", columnHeader: "產品名稱", childMode: "product", scope: buildScope("真龍殿", (row) => inferTowerGroup(row) === "真龍殿") },
+        { id: "tower-ft", parentId: "tower-total", label: "福田", columnHeader: "產品名稱", childMode: "product", scope: buildScope("福田", (row) => inferTowerGroup(row) === "福田") },
+        { id: "tower-bs", parentId: "tower-total", label: "寶山", columnHeader: "產品名稱", childMode: "product", scope: buildScope("寶山", (row) => inferTowerGroup(row) === "寶山") },
+        { id: "tower-jy", parentId: "tower-total", label: "嘉雲", columnHeader: "產品名稱", childMode: "product", scope: buildScope("嘉雲", (row) => inferTowerGroup(row) === "嘉雲") },
+        { id: "tower-ly", parentId: "tower-total", label: "蓮園", columnHeader: "產品名稱", childMode: "product", scope: buildScope("蓮園", (row) => inferTowerGroup(row) === "蓮園") },
+        { id: "tower-at", parentId: "tower-total", label: "安泰", columnHeader: "產品名稱", childMode: "product", scope: buildScope("安泰", (row) => inferTowerGroup(row) === "安泰") },
+        { id: "tower-grade", parentId: "tower-total", label: "等級商品", columnHeader: "系列", scope: buildScope("等級商品", (row) => inferTowerGroup(row) === "等級商品") },
+        { id: "tower-grade-d", parentId: "tower-grade", label: "D系列", columnHeader: "產品名稱", childMode: "product", scope: buildScope("D系列", (row) => inferSeriesGroup(row) === "D") },
+        { id: "tower-grade-h", parentId: "tower-grade", label: "H系列", columnHeader: "產品名稱", childMode: "product", scope: buildScope("H系列", (row) => inferSeriesGroup(row) === "H") },
+        { id: "tower-grade-q", parentId: "tower-grade", label: "Q系列", columnHeader: "產品名稱", childMode: "product", scope: buildScope("Q系列", (row) => inferSeriesGroup(row) === "Q") },
+        { id: "tower-pet", parentId: "tower-total", label: "寵物塔位", columnHeader: "產品名稱", childMode: "product", scope: buildScope("寵物塔位", (row) => inferTowerGroup(row) === "寵物塔位") },
+        { id: "grave-total", parentId: "root", label: "墓園商品", columnHeader: "陵園", scope: buildScope("墓園商品", (row) => normalizeText(row["產品類別"]) === "墓園") },
+        { id: "grave-sz", parentId: "grave-total", label: "三芝陵園", columnHeader: "產品名稱", childMode: "product", scope: buildScope("三芝陵園", (row) => inferCemeteryGroup(row) === "三芝陵園") },
+        { id: "grave-sj", parentId: "grave-total", label: "世紀陵園", columnHeader: "產品名稱", childMode: "product", scope: buildScope("世紀陵園", (row) => inferCemeteryGroup(row) === "世紀陵園") },
+        { id: "grave-ft", parentId: "grave-total", label: "福田陵園", columnHeader: "產品名稱", childMode: "product", scope: buildScope("福田陵園", (row) => inferCemeteryGroup(row) === "福田陵園") },
+        { id: "grave-fg", parentId: "grave-total", label: "富岡陵園", columnHeader: "產品名稱", childMode: "product", scope: buildScope("富岡陵園", (row) => inferCemeteryGroup(row) === "富岡陵園") },
+        { id: "grave-at", parentId: "grave-total", label: "安泰陵園", columnHeader: "產品名稱", childMode: "product", scope: buildScope("安泰陵園", (row) => inferCemeteryGroup(row) === "安泰陵園") },
+      ];
+    }
+
+    function buildDynamicProductNodes() {
+      if (!state.loaded) return [];
+      const nodes = [];
+      const parents = getStaticProductNodes().filter((node) => node.childMode === "product");
+
+      for (const parentNode of parents) {
+        const childMap = new Map();
+        for (const row of state.salesRows) {
+          if (!isTruthyY(row["業績認列"])) continue;
+          if (normalizeText(row["營業處名稱"]) === "業務開發處") continue;
+          if (!filterSalesRowsByProduct([row], parentNode.scope, false).length) continue;
+
+          const label = normalizeText(row["商品簡稱"]) || normalizeText(row["產品名稱"]);
+          if (!label || label === parentNode.label) continue;
+
+          if (!childMap.has(label)) {
+            childMap.set(label, {
+              id: `${parentNode.id}__${label}`,
+              parentId: parentNode.id,
+              label,
+              scope: buildScope(label, (candidate) => (
+                filterSalesRowsByProduct([candidate], parentNode.scope, false).length > 0
+                && (normalizeText(candidate["商品簡稱"]) || normalizeText(candidate["產品名稱"])) === label
+              )),
+            });
+          }
+        }
+        nodes.push(...childMap.values());
+      }
+      return nodes;
+    }
+
+    function rebuildNodeCache() {
+      state.allNodesCache = [...getStaticProductNodes(), ...buildDynamicProductNodes()];
+      state.childNodeMap = new Map();
+      for (const node of state.allNodesCache) {
+        if (!state.childNodeMap.has(node.parentId)) {
+          state.childNodeMap.set(node.parentId, []);
+        }
+        state.childNodeMap.get(node.parentId).push(node);
+      }
+    }
+
+    function getAllNodes() {
+      return state.allNodesCache;
+    }
+
+    function getNodeMap() {
+      return new Map(getAllNodes().map((node) => [node.id, node]));
+    }
+
+    function getChildNodes(parentId) {
+      return state.childNodeMap.get(parentId) || [];
+    }
+
+    function hasChildNodes(nodeId) {
+      return getChildNodes(nodeId).length > 0;
+    }
+
+    function getCurrentViewNodes() {
+      return getChildNodes(state.currentProductView);
+    }
+
+    function setProductView(viewId) {
+      state.currentProductView = viewId;
+      renderReport();
+    }
+
+    function updateDrillNav() {
+      $("drillBackButton").hidden = state.currentProductView === "root";
+      positionDrillBackButton();
+    }
+
+    function positionDrillBackButton() {
+      const wrap = $("drillBackWrap");
+      const button = $("drillBackButton");
+      if (button.hidden) return;
+      const toolbar = document.querySelector(".toolbar");
+      const toolbarRect = toolbar ? toolbar.getBoundingClientRect() : null;
+      const statRect = $("statItemSelect").getBoundingClientRect();
+      if (!toolbarRect || !statRect) return;
+      wrap.style.left = `${statRect.right - toolbarRect.left + 12}px`;
+      wrap.style.top = `${statRect.top - toolbarRect.top}px`;
+    }
+
+    function getFirstColumnHeader() {
+      if (state.currentProductView === "root") return "產品項目";
+      const currentNode = getNodeMap().get(state.currentProductView);
+      return currentNode?.columnHeader || "產品名稱";
+    }
+
+    function getSummaryNode(parentId) {
+      if (parentId === "root") {
+        return { id: "grand-total", label: "合計", scope: "全部", isSummary: true };
+      }
+      const parentNode = getNodeMap().get(parentId);
+      if (!parentNode) return null;
+      return { id: `${parentId}__summary`, label: "合計", scope: parentNode.scope, isSummary: true };
+    }
+
+    function getManualOrder(viewId) {
+      return ({
+        root: ["契約商品", "塔位商品", "墓園商品", "合計"],
+        "tower-total": ["等級商品", "真龍殿", "福田", "寶山", "嘉雲", "蓮園", "安泰", "寵物塔位", "合計"],
+        "tower-grade": ["D系列", "H系列", "Q系列", "合計"],
+        "grave-total": ["世紀陵園", "三芝陵園", "福田陵園", "富岡陵園", "安泰陵園", "合計"],
+      })[viewId] || null;
+    }
+
+    function filterSalesRowsByPeriod(yyyymm, channel) {
+      return state.salesRows.filter((row) => {
+        if (normalizeText(row["業績確認年月"]) !== yyyymm) return false;
+        if (!isTruthyY(row["業績認列"])) return false;
+        if (normalizeText(row["營業處名稱"]) === "業務開發處") return false;
+        if (channel !== "全部" && normalizeText(row["通路類別"]) !== channel) return false;
+        return true;
+      });
+    }
+
+    function filterSalesRowsByProduct(rows, product, forCount = false) {
+      return rows.filter((row) => {
+        if (product && typeof product === "object" && typeof product.matcher === "function") {
+          if (forCount && !getCountGroup(row["產品類別"])) return false;
+          return product.matcher(row);
+        }
+        const group = forCount ? getCountGroup(row["產品類別"]) : getSalesGroup(row["產品類別"]);
+        if (!group) return false;
+        if (product === "全部") return true;
+        return group === product;
+      });
+    }
+
+    function getRevenue(rows, product) {
+      return filterSalesRowsByProduct(rows, product, false).reduce((sum, row) => sum + parseNumber(row["管報金額"]), 0);
+    }
+
+    function getDealCountEligibleRows(rows, product) {
+      return filterSalesRowsByProduct(rows, product, true).filter((row) => parseNumber(row["數量"]) === 1);
+    }
+
+    function getDealCount(rows, product) {
+      return getDealCountEligibleRows(rows, product).reduce((sum, row) => sum + parseNumber(row["數量"]), 0);
+    }
+
+    function getCustomerCount(rows, product) {
+      const set = new Set();
+      for (const row of filterSalesRowsByProduct(rows, product, false)) {
+        const customerId = normalizeText(row["客戶身份證字號"]);
+        if (customerId) set.add(customerId);
+      }
+      return set.size;
+    }
+
+    function getBigOrderRows(rows, product, forCount = false) {
+      return filterSalesRowsByProduct(rows, product, forCount).filter((row) => parseNumber(row["管報金額"]) >= 100);
+    }
+
+    function getPaymentRows(rows, product, kind) {
+      return filterSalesRowsByProduct(rows, product, false).filter((row) => {
+        const payment = normalizeText(row["付款方式類別"]);
+        const isInstallment = payment.includes("分期");
+        if (kind === "installment") return isInstallment;
+        if (kind === "cash") return !isInstallment;
+        return false;
+      });
+    }
+
+    function getHireCount(period, statuses) {
+      return state.orgRows.filter((row) => (
+        normalizeText(row["年月"]) === period
+        && statuses.includes(normalizeText(row["報聘狀況"]))
+      )).length;
+    }
+
+    function getSelfPurchaseRows(rows, product) {
+      return filterSalesRowsByProduct(rows, product, false).filter((row) => isTruthyY(row["是否自購"]));
+    }
+
+    function getResolvedOwner(row) {
+      const month = normalizeText(row["業績確認年月"]);
+      const employeeId = normalizeText(row["業務身份證字號"]);
+      const cache = state.orgResolutionCache.get(month);
+      return cache?.resolved.get(employeeId) || null;
+    }
+
+    function getActiveOrgRows(yyyymm) {
+      return state.orgRows.filter((row) => normalizeText(row["年月"]) === yyyymm && isSupervisorTitle(row["職稱"]) && isOrgRowActive(row));
+    }
+
+    function shouldExcludeChiefFromTitleMetrics(row, groupedTitle) {
+      return groupedTitle === "處長" && normalizeText(row["營業處名稱"]) === "行政處6D";
+    }
+
+    function getActiveHeadcount(yyyymm, titles = null) {
+      const rows = getActiveOrgRows(yyyymm).filter((row) => {
+        const groupedTitle = getTitleGroup(row["職稱"]);
+        if (titles && !titles.includes(groupedTitle)) return false;
+        if (titles && shouldExcludeChiefFromTitleMetrics(row, groupedTitle)) return false;
+        return true;
+      });
+      return new Set(rows.map((row) => normalizeText(row["業務身份證字號"]))).size;
+    }
+
+    function getProductiveHeadcount(rows, product, titles = null) {
+      const ids = new Set();
+      for (const row of filterSalesRowsByProduct(rows, product, false)) {
+        const owner = getResolvedOwner(row);
+        if (!owner) continue;
+        const groupedTitle = getTitleGroup(owner["職稱"]);
+        if (titles && !titles.includes(groupedTitle)) continue;
+        if (!isSupervisorTitle(owner["職稱"])) continue;
+        ids.add(normalizeText(owner["業務身份證字號"]));
+      }
+      return ids.size;
+    }
+
+    function getRevenueByTitles(rows, product, titles) {
+      return filterSalesRowsByProduct(rows, product, false).reduce((sum, row) => {
+        const owner = getResolvedOwner(row);
+        if (!owner) return sum;
+        const groupedTitle = getTitleGroup(owner["職稱"]);
+        if (!titles.includes(groupedTitle)) return sum;
+        if (shouldExcludeChiefFromTitleMetrics(owner, groupedTitle)) return sum;
+        return sum + parseNumber(row["管報金額"]);
+      }, 0);
+    }
+
+    function getOfficeRevenueRank(rows, product, topN) {
+      const officeMap = new Map();
+      for (const row of filterSalesRowsByProduct(rows, product, false)) {
+        if (normalizeText(row["通路類別"]) !== "營業處") continue;
+        const officeName = normalizeText(row["營業處名稱"]);
+        officeMap.set(officeName, (officeMap.get(officeName) || 0) + parseNumber(row["管報金額"]));
+      }
+      return [...officeMap.values()].sort((a, b) => b - a).slice(0, topN).reduce((sum, value) => sum + value, 0);
+    }
+
+    function subtractMonths(yyyymm, months) {
+      const year = Number(String(yyyymm).slice(0, 3)) + 1911;
+      const month = Number(String(yyyymm).slice(3));
+      const date = new Date(year, month - 1 - months, 1);
+      return `${String(date.getFullYear() - 1911).padStart(3, "0")}${String(date.getMonth() + 1).padStart(2, "0")}`;
+    }
+
+    function getRetentionStats(yyyymm, hireType, months) {
+      const cohortMonth = subtractMonths(yyyymm, months);
+      const cohort = state.orgRows.filter((row) => normalizeText(row["年月"]) === cohortMonth && normalizeText(row["報聘狀況"]) === hireType);
+      if (!cohort.length) return null;
+      const currentMonthMap = new Map(
+        state.orgRows
+          .filter((row) => normalizeText(row["年月"]) === yyyymm)
+          .map((row) => [normalizeText(row["業務身份證字號"]), row])
+      );
+      let retained = 0;
+      for (const row of cohort) {
+        const current = currentMonthMap.get(normalizeText(row["業務身份證字號"]));
+        if (current && isOrgRowActive(current)) retained += 1;
+      }
+      return { retained, total: cohort.length };
+    }
+
+    function getRetentionRate(yyyymm, hireType, months) {
+      const stats = getRetentionStats(yyyymm, hireType, months);
+      if (!stats) return null;
+      return stats.retained / stats.total;
+    }
+
+    function getWeightedRetentionRate(periods, months) {
+      let retainedTotal = 0;
+      let cohortTotal = 0;
+      for (const period of periods) {
+        for (const hireType of ["新進", "重新報聘"]) {
+          const stats = getRetentionStats(period, hireType, months);
+          if (!stats) continue;
+          retainedTotal += stats.retained;
+          cohortTotal += stats.total;
+        }
+      }
+      return safeDivide(retainedTotal, cohortTotal);
+    }
+
+    function safeDivide(numerator, denominator) {
+      if (!denominator) return null;
+      return numerator / denominator;
+    }
+
+    function averageMonthlyValue(periods, context, valueGetter) {
+      if (!periods.length) return null;
+      const values = periods
+        .map((period) => valueGetter(filterSalesRowsByPeriod(period, context.channel), period))
+        .filter((value) => value !== null && value !== undefined && !Number.isNaN(value));
+      if (!values.length) return null;
+      return values.reduce((sum, value) => sum + value, 0) / values.length;
+    }
+
+    function metricLabel(template, context) {
+      return template
+        .replace(/\{product\}/g, context.product === "全部" ? "全商品" : context.product)
+        .replace(/\{titles\}/g, context.titles.join("/"));
+    }
+
+    function buildMetricRegistry(context) {
+      return {
+        "產品銷售": [
+          {
+            key: "revenue",
+            label: "{product}業績",
+            note: "依產品類別統計有效業績總額。",
+            type: "currency",
+            value: (rows) => getRevenue(rows, context.product),
+          },
+          {
+            key: "dealCount",
+            label: "{product}件數",
+            note: "只算契約 / 塔位 / 寵物塔位 / 墓園，且僅計入數量 = 1 的業績列。",
+            type: "integer",
+            value: (rows) => getDealCount(rows, context.product),
+          },
+          {
+            key: "mixRatio",
+            label: "{product}業績佔率",
+            note: "當產品類別為全部時不顯示。",
+            type: "percent",
+            hidden: () => context.product === "全部",
+            value: (rows) => safeDivide(getRevenue(rows, context.product), getRevenue(rows, "全部")),
+          },
+          {
+            key: "avgUnitPrice",
+            label: "{product}平均單價",
+            note: "平均單價 = 同類業績金額 / 件數；分子包含未計入件數的業績。",
+            type: "currency",
+            value: (rows) => safeDivide(getRevenue(rows, context.product), getDealCount(rows, context.product)),
+          },
+          {
+            key: "bigOrderRevenueRatio",
+            label: "{product}大單業績佔率",
+            note: "大單門檻為 100 萬；分母採同類母體。",
+            type: "percent",
+            value: (rows) => safeDivide(
+              getBigOrderRows(rows, context.product, false).reduce((sum, row) => sum + parseNumber(row["管報金額"]), 0),
+              getRevenue(rows, context.product)
+            ),
+          },
+          {
+            key: "bigOrderCountRatio",
+            label: "{product}大單件數佔率",
+            note: "大單門檻為 100 萬；分母採同類母體。",
+            type: "percent",
+            value: (rows) => safeDivide(getBigOrderRows(rows, context.product, true).length, getDealCount(rows, context.product)),
+          },
+        ],
+        "展業效率": [
+          {
+            key: "revenue",
+            label: "{product}業績",
+            note: "依產品類別統計有效業績總額。",
+            type: "currency",
+            value: (rows) => getRevenue(rows, context.product),
+          },
+          {
+            key: "activeHeadcount",
+            label: "在職人數",
+            note: "主任級(含)以上在職人數。",
+            type: "integer",
+            value: (_, period) => getActiveHeadcount(period),
+            ytdValue: (_, periods) => averageMonthlyValue(periods, context, (_rows, period) => getActiveHeadcount(period)),
+          },
+          {
+            key: "productiveHeadcount",
+            label: "實動人數",
+            note: "單月為當月有業績貢獻的主任級(含)以上人數；累計為累計期間各月實動人數月均值。",
+            type: "integer",
+            value: (rows) => getProductiveHeadcount(rows, context.product),
+            ytdValue: (_, periods) => averageMonthlyValue(periods, context, (rows) => getProductiveHeadcount(rows, context.product)),
+          },
+          {
+            key: "productiveRate",
+            label: "實動率",
+            note: "單月為實動人數 / 在職人數；累計為累計期間各月實動率月均值。",
+            type: "percent",
+            value: (rows, period) => safeDivide(getProductiveHeadcount(rows, context.product), getActiveHeadcount(period)),
+            ytdValue: (_, periods) => averageMonthlyValue(
+              periods,
+              context,
+              (rows, period) => safeDivide(getProductiveHeadcount(rows, context.product), getActiveHeadcount(period))
+            ),
+          },
+          {
+            key: "revenuePerHead",
+            label: "產值",
+            note: "單月為每位實動人員平均產出；累計為累計期間各月產值月均值。",
+            type: "currency",
+            value: (rows) => safeDivide(getRevenue(rows, context.product), getProductiveHeadcount(rows, context.product)),
+            ytdValue: (_, periods) => averageMonthlyValue(
+              periods,
+              context,
+              (rows) => safeDivide(getRevenue(rows, context.product), getProductiveHeadcount(rows, context.product))
+            ),
+          },
+          {
+            key: "customerCount",
+            label: "客戶人數",
+            note: "去重後客戶人數。",
+            type: "integer",
+            value: (rows) => getCustomerCount(rows, context.product),
+            ytdValue: (_, periods) => averageMonthlyValue(periods, context, (rows) => getCustomerCount(rows, context.product)),
+          },
+          {
+            key: "avgRevenuePerCustomer",
+            label: "客均單價",
+            note: "每位客戶平均帶來的業績。",
+            type: "currency",
+            value: (rows) => safeDivide(getRevenue(rows, context.product), getCustomerCount(rows, context.product)),
+          },
+          {
+            key: "avgDealsPerCustomer",
+            label: "客均件數",
+            note: "每位客戶平均購買件數。",
+            type: "decimal",
+            value: (rows) => safeDivide(getDealCount(rows, context.product), getCustomerCount(rows, context.product)),
+          },
+          {
+            key: "customersPerHead",
+            label: "人均客數",
+            note: "單月為每位實動人員平均服務客戶數；累計為累計期間各月人均客數月均值。",
+            type: "decimal",
+            value: (rows) => safeDivide(getCustomerCount(rows, context.product), getProductiveHeadcount(rows, context.product)),
+            ytdValue: (_, periods) => averageMonthlyValue(
+              periods,
+              context,
+              (rows) => safeDivide(getCustomerCount(rows, context.product), getProductiveHeadcount(rows, context.product))
+            ),
+          },
+        ],
+        "付款方式": [
+          {
+            key: "revenue",
+            label: "{product}業績",
+            note: "依產品類別統計有效業績總額。",
+            type: "currency",
+            value: (rows) => getRevenue(rows, context.product),
+          },
+          {
+            key: "installmentRevenue",
+            label: "分期件業績",
+            note: "一般分期 + 現金分期。",
+            type: "currency",
+            value: (rows) => getPaymentRows(rows, context.product, "installment").reduce((sum, row) => sum + parseNumber(row["管報金額"]), 0),
+          },
+          {
+            key: "installmentRatio",
+            label: "分期件佔率",
+            note: "分母採同類母體。",
+            type: "percent",
+            value: (rows) => safeDivide(
+              getPaymentRows(rows, context.product, "installment").reduce((sum, row) => sum + parseNumber(row["管報金額"]), 0),
+              getRevenue(rows, context.product)
+            ),
+          },
+          {
+            key: "cashRevenue",
+            label: "現金件業績",
+            note: "符合現金件條件的業績金額。",
+            type: "currency",
+            value: (rows) => getPaymentRows(rows, context.product, "cash").reduce((sum, row) => sum + parseNumber(row["管報金額"]), 0),
+          },
+          {
+            key: "cashRatio",
+            label: "現金件佔率",
+            note: "分母採同類母體。",
+            type: "percent",
+            value: (rows) => safeDivide(
+              getPaymentRows(rows, context.product, "cash").reduce((sum, row) => sum + parseNumber(row["管報金額"]), 0),
+              getRevenue(rows, context.product)
+            ),
+          },
+          {
+            key: "selfPurchaseRatio",
+            label: "自購件占比",
+            note: "分母採同類母體。",
+            type: "percent",
+            value: (rows) => safeDivide(
+              getSelfPurchaseRows(rows, context.product).reduce((sum, row) => sum + parseNumber(row["管報金額"]), 0),
+              getRevenue(rows, context.product)
+            ),
+          },
+        ],
+        "增員育留": [
+          {
+            key: "revenue",
+            label: "{product}業績",
+            note: "依產品類別統計有效業績總額。",
+            type: "currency",
+            value: (rows) => getRevenue(rows, context.product),
+          },
+          {
+            key: "newHireCount",
+            label: "新進報聘人數",
+            note: "當月報聘狀況 = 新進。",
+            type: "integer",
+            value: (_, period) => getHireCount(period, ["新進"]),
+            ytdValue: (_, periods) => periods.reduce((sum, period) => sum + getHireCount(period, ["新進"]), 0),
+          },
+          {
+            key: "rehireCount",
+            label: "重新報聘人數",
+            note: "當月報聘狀況 = 重新報聘。",
+            type: "integer",
+            value: (_, period) => getHireCount(period, ["重新報聘"]),
+            ytdValue: (_, periods) => periods.reduce((sum, period) => sum + getHireCount(period, ["重新報聘"]), 0),
+          },
+          {
+            key: "totalHireCount",
+            label: "合計報聘人數",
+            note: "新進 + 重新報聘。",
+            type: "integer",
+            value: (_, period) => getHireCount(period, ["新進", "重新報聘"]),
+            ytdValue: (_, periods) => periods.reduce((sum, period) => sum + getHireCount(period, ["新進", "重新報聘"]), 0),
+          },
+          {
+            key: "retention6",
+            label: "6個月續留率",
+            note: "以 6 個月前報聘 cohort 計算。",
+            type: "percent",
+            value: (_, period) => getWeightedRetentionRate([period], 6),
+            ytdValue: (_, periods) => getWeightedRetentionRate(periods, 6),
+          },
+          {
+            key: "retention12",
+            label: "12個月續留率",
+            note: "以 12 個月前報聘 cohort 計算。",
+            type: "percent",
+            value: (_, period) => getWeightedRetentionRate([period], 12),
+            ytdValue: (_, periods) => getWeightedRetentionRate(periods, 12),
+          },
+        ],
+        "組織結構": [
+          {
+            key: "revenue",
+            label: "{product}業績",
+            note: "依產品類別統計有效業績總額。",
+            type: "currency",
+            hidden: () => isAllTitlesSelected() && context.product !== "全部",
+            value: (rows) => getRevenue(rows, context.product),
+          },
+          {
+            key: "activeHeadcount",
+            label: "在職人數",
+            note: "主任級(含)以上在職人數。",
+            type: "integer",
+            value: (_, period) => getActiveHeadcount(period),
+            ytdValue: (_, periods) => averageMonthlyValue(periods, context, (_rows, period) => getActiveHeadcount(period)),
+          },
+          {
+            key: "titleHeadcount",
+            label: "{titles}人數",
+            note: "依目前職級複選結果統計。",
+            type: "integer",
+            hidden: () => isAllTitlesSelected(),
+            value: (_, period) => getActiveHeadcount(period, context.titles),
+            ytdValue: (_, periods) => averageMonthlyValue(periods, context, (_rows, period) => getActiveHeadcount(period, context.titles)),
+          },
+          {
+            key: "titleHeadcountRatio",
+            label: "{titles}人數佔率",
+            note: "依目前職級複選結果統計。",
+            type: "percent",
+            hidden: () => isAllTitlesSelected(),
+            value: (_, period) => safeDivide(getActiveHeadcount(period, context.titles), getActiveHeadcount(period)),
+            ytdValue: (_, periods) => averageMonthlyValue(periods, context, (_rows, period) => safeDivide(getActiveHeadcount(period, context.titles), getActiveHeadcount(period))),
+          },
+          {
+            key: "titleRevenue",
+            label: "{titles}業績",
+            note: "依目前職級複選結果統計。",
+            type: "currency",
+            hidden: () => isAllTitlesSelected(),
+            value: (rows) => getRevenueByTitles(rows, context.product, context.titles),
+          },
+          {
+            key: "titleRevenueRatio",
+            label: "{titles}業績佔率",
+            note: "分母採同類母體。",
+            type: "percent",
+            hidden: () => isAllTitlesSelected(),
+            value: (rows) => safeDivide(getRevenueByTitles(rows, context.product, context.titles), getRevenue(rows, context.product)),
+          },
+          {
+            key: "top1Revenue",
+            label: "營Top1業績",
+            note: "通路 = 營業處時適用。",
+            type: "currency",
+            hidden: () => context.channel !== "營業處",
+            value: (rows) => getOfficeRevenueRank(rows, context.product, 1),
+          },
+          {
+            key: "top1Ratio",
+            label: "營Top1業績佔率",
+            note: "通路 = 營業處時適用。",
+            type: "percent",
+            hidden: () => context.channel !== "營業處",
+            value: (rows) => safeDivide(getOfficeRevenueRank(rows, context.product, 1), getRevenue(rows, context.product)),
+          },
+          {
+            key: "top5Revenue",
+            label: "營Top5業績",
+            note: "通路 = 營業處時適用。",
+            type: "currency",
+            hidden: () => context.channel !== "營業處",
+            value: (rows) => getOfficeRevenueRank(rows, context.product, 5),
+          },
+          {
+            key: "top5Ratio",
+            label: "營Top5業績佔率",
+            note: "通路 = 營業處時適用。",
+            type: "percent",
+            hidden: () => context.channel !== "營業處",
+            value: (rows) => safeDivide(getOfficeRevenueRank(rows, context.product, 5), getRevenue(rows, context.product)),
+          },
+          {
+            key: "top10Revenue",
+            label: "營Top10業績",
+            note: "通路 = 營業處時適用。",
+            type: "currency",
+            hidden: () => context.channel !== "營業處",
+            value: (rows) => getOfficeRevenueRank(rows, context.product, 10),
+          },
+          {
+            key: "top10Ratio",
+            label: "營Top10業績佔率",
+            note: "通路 = 營業處時適用。",
+            type: "percent",
+            hidden: () => context.channel !== "營業處",
+            value: (rows) => safeDivide(getOfficeRevenueRank(rows, context.product, 10), getRevenue(rows, context.product)),
+          },
+        ],
+      };
+    }
+
+    function formatValue(value, type) {
+      if (value === null || value === undefined || Number.isNaN(value)) return "—";
+      if (type === "percent") return `${(value * 100).toFixed(1)}%`;
+      if (type === "integer") return `${Math.round(value).toLocaleString("zh-TW")}`;
+      if (type === "decimal") return `${value.toFixed(1)}`;
+      return `${Math.round(value).toLocaleString("zh-TW")}`;
+    }
+
+    function formatDelta(value, type) {
+      if (value === null || value === undefined || Number.isNaN(value)) return "—";
+      const formatted = formatValue(Math.abs(value), type);
+      const cls = value > 0 ? "good" : value < 0 ? "bad" : "";
+      const sign = value > 0 ? "+" : value < 0 ? "-" : "";
+      return `<span class="num ${cls}">${sign}${formatted}</span>`;
+    }
+
+    function computePeriodMetrics(yyyymm, context) {
+      const rows = filterSalesRowsByPeriod(yyyymm, context.channel);
+      return { yyyymm, rows };
+    }
+
+    function computeRowsForPeriods(periods, context) {
+      return periods.flatMap((period) => filterSalesRowsByPeriod(period, context.channel));
+    }
+
+    function getUnresolvedOwnerCount(rows) {
+      return rows.filter((row) => !getResolvedOwner(row)).length;
+    }
+
+    function computeYtdRows(months, context) {
+      return months.flatMap((month) => filterSalesRowsByPeriod(month, context.channel));
+    }
+
+    function getSelectedMetricDefinition(context, productScope = "全部") {
+      const registry = buildMetricRegistry({ ...context, product: productScope })[context.statistic.category];
+      return registry.find((metric) => metric.key === context.statistic.key) || registry[0];
+    }
+
+    function renderWarnings(context) {
+      const warnings = [];
+      if (context.statistic.category === "展業效率" && context.channel !== "營業處") {
+        warnings.push("目前選到的人員/組織型指標，會使用業務組織檔計算。若通路不是「營業處」，部分指標可能只對營業處體系有完整覆蓋。");
+      }
+      if (context.statistic.category === "展業效率" && context.channel === "營業處") {
+        const unresolvedOwnerCount = getUnresolvedOwnerCount(computeRowsForPeriods(context.currentPeriods, context));
+        if (unresolvedOwnerCount > 0) {
+          warnings.push(`目前條件下仍有 ${unresolvedOwnerCount} 筆業績找不到當月組織歸屬，涉及實動人數、產值、職級業績等組織型指標時，結果可能略有低估。`);
+        }
+      }
+      const box = $("warningBox");
+      if (warnings.length) {
+        box.classList.add("show");
+        box.innerHTML = warnings.map((warning) => `※ ${warning}`).join("<br>");
+      } else {
+        box.classList.remove("show");
+        box.textContent = "";
+      }
+    }
+
+    function renderReport() {
+      if (!state.loaded) return;
+      const context = getSelectedContext();
+      renderWarnings(context);
+      updateDrillNav();
+      $("firstColumnHeader").textContent = getFirstColumnHeader();
+
+      const baseMetric = getSelectedMetricDefinition(context);
+      const nodes = [...getCurrentViewNodes(), getSummaryNode(state.currentProductView)].filter(Boolean);
+      const current = { yyyymm: context.yyyymm, rows: computeRowsForPeriods(context.currentPeriods, context) };
+      const prev = { yyyymm: context.prevYyyymm, rows: computeRowsForPeriods(context.prevPeriods, context) };
+      const currentYtdRows = computeYtdRows(context.ytdMonths, context);
+      const prevYtdRows = computeYtdRows(context.prevYtdMonths, context);
+
+      const rowsHtml = nodes
+        .map((node) => {
+          const metric = getSelectedMetricDefinition(context, node.scope);
+          const currentValue = metric.value(current.rows, context.yyyymm);
+          const prevValue = metric.value(prev.rows, context.prevYyyymm);
+          const currentYtdValue = metric.ytdValue
+            ? metric.ytdValue(currentYtdRows, context.ytdMonths)
+            : metric.value(currentYtdRows, context.yyyymm);
+          const prevYtdValue = metric.ytdValue
+            ? metric.ytdValue(prevYtdRows, context.prevYtdMonths)
+            : metric.value(prevYtdRows, context.prevYyyymm);
+          const monthDelta = currentValue === null || prevValue === null ? null : currentValue - prevValue;
+          const monthDeltaRate = currentValue === null || prevValue === null ? null : safeDivide(currentValue - prevValue, prevValue);
+          const ytdDelta = currentYtdValue === null || prevYtdValue === null ? null : currentYtdValue - prevYtdValue;
+          const ytdDeltaRate = currentYtdValue === null || prevYtdValue === null ? null : safeDivide(currentYtdValue - prevYtdValue, prevYtdValue);
+          const canDrill = hasChildNodes(node.id);
+          const labelHtml = canDrill
+            ? `<span class="metric-tip drill-link" data-drill-id="${node.id}" title="${metric.note}" style="font-weight:${node.isSummary ? 700 : 400}; display:inline-block;">${node.label}</span>`
+            : `<span class="metric-tip" title="${metric.note}" style="font-weight:${node.isSummary ? 700 : 400}; display:inline-block;">${node.label}</span>`;
+          return {
+            node,
+            monthDelta,
+            html: `
+	            <tr class="${node.isSummary ? "summary-row" : ""}">
+              <td class="metric-name">
+                ${labelHtml}
+              </td>
+              <td class="num">${formatValue(currentValue, metric.type)}</td>
+              <td class="num">${formatValue(prevValue, metric.type)}</td>
+              <td>${formatDelta(monthDelta, metric.type)}</td>
+              <td>${formatDelta(monthDeltaRate, "percent")}</td>
+              <td class="num">${formatValue(currentYtdValue, metric.type)}</td>
+              <td class="num">${formatValue(prevYtdValue, metric.type)}</td>
+              <td>${formatDelta(ytdDelta, metric.type)}</td>
+              <td>${formatDelta(ytdDeltaRate, "percent")}</td>
+            </tr>
+          `,
+          };
+        })
+        .sort((a, b) => {
+          if (a.node.isSummary !== b.node.isSummary) {
+            return a.node.isSummary ? 1 : -1;
+          }
+          const manualOrder = getManualOrder(state.currentProductView);
+          if (manualOrder) {
+            const leftIndex = manualOrder.indexOf(a.node.label);
+            const rightIndex = manualOrder.indexOf(b.node.label);
+            const normalizedLeft = leftIndex === -1 ? Number.MAX_SAFE_INTEGER : leftIndex;
+            const normalizedRight = rightIndex === -1 ? Number.MAX_SAFE_INTEGER : rightIndex;
+            if (normalizedLeft !== normalizedRight) return normalizedLeft - normalizedRight;
+          }
+          const left = a.monthDelta ?? Number.NEGATIVE_INFINITY;
+          const right = b.monthDelta ?? Number.NEGATIVE_INFINITY;
+          return right - left;
+        })
+        .map((row) => row.html)
+        .join("");
+
+      $("reportBody").innerHTML = rowsHtml || `<tr><td colspan="9" class="muted" style="padding:24px; text-align:left;">目前條件下沒有可顯示的指標。</td></tr>`;
+      $("footnote").innerHTML = `統計項目：${context.statistic.label}。${baseMetric.note}`;
+    }
+
+    async function useSheetRows(salesRows, orgRows) {
+      state.salesRows = salesRows;
+      state.orgRows = orgRows;
+      state.orgResolutionCache.clear();
+      ensureResolutionCache();
+      state.loaded = true;
+      rebuildNodeCache();
+      buildFilterOptions();
+      setStatus([
+        "已載入資料。",
+        `業績列數：${state.salesRows.length.toLocaleString("zh-TW")}`,
+        `組織列數：${state.orgRows.length.toLocaleString("zh-TW")}`,
+      ].join("\n"));
+      renderReport();
+    }
+
+    async function handleAutoLoad() {
+      setStatus("正在讀取 Google Sheets...");
+      try {
+        const [salesRows, orgRows] = await Promise.all([
+          fetchSheetRows(SALES_SHEET),
+          fetchSheetRows(ORG_SHEET),
+        ]);
+        await useSheetRows(salesRows, orgRows);
+      } catch (error) {
+        setStatus(`Google Sheets 讀取失敗：${error.message}`);
+        $("reportBody").innerHTML = `<tr><td colspan="9" class="muted" style="padding:24px; text-align:left;">無法讀取 Google Sheets。請先將兩份試算表設為可公開讀取，建議至少設為「知道連結的任何人可檢視」，若仍失敗再使用「發布到網路」。</td></tr>`;
+      }
+    }
+
+    $("yearSelect").addEventListener("change", () => {
+      updateMonthOptions($("yearSelect").value, $("monthSelect").value);
+      renderReport();
+    });
+    $("drillBackButton").addEventListener("click", () => {
+      const currentNode = getNodeMap().get(state.currentProductView);
+      setProductView(currentNode?.parentId || "root");
+    });
+    $("reportBody").addEventListener("click", (event) => {
+      const trigger = event.target.closest("[data-drill-id]");
+      if (!trigger) return;
+      setProductView(trigger.dataset.drillId);
+    });
+    window.addEventListener("resize", positionDrillBackButton);
+    ["monthSelect", "channelSelect", "statItemSelect"].forEach((id) => {
+      $(id).addEventListener("change", renderReport);
+    });
+    handleAutoLoad();
+  </script>
+</body>
+</html>
